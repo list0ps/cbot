@@ -8,7 +8,7 @@ import asyncio  # Import asyncio for background tasks
 # Supported currencies
 SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD']
 
-# Mapping of currency codes to (singular name, plural name)
+# Mapping currency codes to (singular name, plural name)
 CURRENCY_NAMES = {
     'USD': ('United States Dollar', 'United States Dollars'),
     'NZD': ('New Zealand Dollar', 'New Zealand Dollars'),
@@ -53,9 +53,9 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 # Placeholder for error logging channel and startup message channel
-ERROR_CHANNEL_ID = 1305733544261455882  # Replace with the actual channel ID for error logs
-STARTUP_CHANNEL_ID = 1305733544261455882  # Replace with the actual channel ID for startup message
-PERIODIC_CHANNEL_ID = 1305815351069507604  # Channel to send periodic messages
+ERROR_CHANNEL_ID = 1305733544261455882  
+STARTUP_CHANNEL_ID = 1305733544261455882  
+PERIODIC_CHANNEL_ID = 1305815351069507604  # ensure bot remains awake on heroku
 
 @client.event
 async def on_ready():
