@@ -8,7 +8,7 @@ import asyncio  # Import asyncio for background tasks
 # Supported currencies
 SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD']
 
-# Mapping currency codes to (singular name, plural name)
+# Mapping of currency codes to (singular name, plural name)
 CURRENCY_NAMES = {
     'USD': ('United States Dollar', 'United States Dollars'),
     'NZD': ('New Zealand Dollar', 'New Zealand Dollars'),
@@ -53,9 +53,9 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 # Placeholder for error logging channel and startup message channel
-ERROR_CHANNEL_ID = 1305733544261455882  
-STARTUP_CHANNEL_ID = 1305733544261455882  
-PERIODIC_CHANNEL_ID = 1305815351069507604  # ensure bot remains awake on heroku
+ERROR_CHANNEL_ID = 1305733544261455882  # Replace with the actual channel ID for error logs
+STARTUP_CHANNEL_ID = 1305733544261455882  # Replace with the actual channel ID for startup message
+PERIODIC_CHANNEL_ID = 1305815351069507604  # Channel to send periodic messages
 
 @client.event
 async def on_ready():
@@ -73,54 +73,93 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    # Handle 'convert' or variations like 'Convert' and 'conv'
-    if message.content.lower().startswith(('convert', 'conv')):
-        try:
-            parts = message.content.split()
-            amount = float(parts[1])
-            from_currency = parts[2].upper()
-            to_currency = parts[4].upper()
+    # Handle 'convert' or variations like 'Convert' and 'conv' (short response)
+    if message.content.lower().startswith('convert ') or message.content.lower().startswith('conv '):
+        await handle_conversion(message, full_response=False)
 
-            if from_currency not in SUPPORTED_CURRENCIES or to_currency not in SUPPORTED_CURRENCIES:
-                supported_currencies = "\n".join(
-                    f"{i+1}. {CURRENCY_NAMES[c][1]} ({c})" for i, c in enumerate(SUPPORTED_CURRENCIES)
-                )
-                await message.channel.send(
-                    f"**That's not a currency dumbfuck. Supported currencies are:**\n{supported_currencies}\n\n"
-                    "**To use the currency converter, type:**\n`conv [amount] [from_currency] to [target_currency]`"
-                )
-                return
+    # Handle 'convertfull' or variations like 'Convertfull' and 'convf' (full response)
+    elif message.content.lower().startswith('convertfull') or message.content.lower().startswith('convf'):
+        await handle_conversion(message, full_response=True)
 
-            rate, high_30, low_30, average_30, change_30, url = get_exchange_rate(from_currency, to_currency)
+    # Handle 'chelp' for showing syntax and examples
+    elif message.content.lower().startswith('chelp'):
+        await message.channel.send(
+            "**Currency Conversion Help**\n\n"
+            "**1. Basic Conversion:**\n"
+            "`conv [amount] [from_currency] to [target_currency]`\n"
+            "Example: `conv 100 USD to CAD`\n"
+            "Provides a short response with the conversion rate.\n\n"
+            "**2. Full Conversion with Details:**\n"
+            "`convf [amount] [from_currency] to [target_currency]`\n"
+            "Example: `convf 100 USD to CAD`\n"
+            "Provides a detailed response including 30-day high, low, average, change, and source link."
+        )
 
-            if rate:
-                converted_amount = amount * rate
+    # Handle 'listcur' for listing supported currencies
+    elif message.content.lower().startswith('clist'):
+        currency_list = "\n".join(
+            f"{i+1}. {CURRENCY_NAMES[c][1]} ({c})" for i, c in enumerate(SUPPORTED_CURRENCIES)
+        )
+        await message.channel.send(
+            f"**Supported currencies:**\n{currency_list}\n\n"
+            "**To use the currency converter, type:**\n"
+            "`conv [amount] [from_currency] to [target_currency]`\n"
+            "`convf [amount] [from_currency] to [target currency]` will return more information with source."
+        )
 
-                from_currency_singular, from_currency_plural = CURRENCY_NAMES[from_currency]
-                to_currency_singular, to_currency_plural = CURRENCY_NAMES[to_currency]
+async def handle_conversion(message, full_response):
+    try:
+        parts = message.content.split()
+        
+        # Ensure correct number of elements
+        if len(parts) < 5:
+            await message.channel.send("Invalid syntax. Use `conv [amount] [from_currency] to [target_currency]`.")
+            return
 
-                from_currency_name = from_currency_singular if amount == 1 else from_currency_plural
-                to_currency_name = to_currency_singular if round(converted_amount, 2) == 1.00 else to_currency_plural
+        amount = parts[1]
+        from_currency = parts[2].upper()
+        to_currency = parts[4].upper()
 
+        # Validate currencies before processing
+        if from_currency not in SUPPORTED_CURRENCIES or to_currency not in SUPPORTED_CURRENCIES:
+            supported_currencies = "\n".join(
+                f"{i+1}. {CURRENCY_NAMES[c][1]} ({c})" for i, c in enumerate(SUPPORTED_CURRENCIES)
+            )
+            await message.channel.send(
+                f"**That's not a currency dumbfuck. Supported currencies are:**\n{supported_currencies}\n\n"
+                "**To use the currency converter, type:**\n`conv [amount] [from_currency] to [target_currency]`\n"
+                "`convf [amount] [from_currency] to [target_currency]` will return more information with source."
+            )
+            return
+
+        # Convert amount to float
+        amount = float(amount)
+        
+        rate, high_30, low_30, average_30, change_30, url = get_exchange_rate(from_currency, to_currency)
+
+        if rate:
+            converted_amount = amount * rate
+
+            from_currency_singular, from_currency_plural = CURRENCY_NAMES[from_currency]
+            to_currency_singular, to_currency_plural = CURRENCY_NAMES[to_currency]
+
+            from_currency_name = from_currency_singular if amount == 1 else from_currency_plural
+            to_currency_name = to_currency_singular if round(converted_amount, 2) == 1.00 else to_currency_plural
+
+            if full_response:
                 await message.channel.send(
                     f"**{amount} {from_currency_name}** is approximately **{converted_amount:.2f} {to_currency_name}** at an exchange rate of **{rate:.4f}**.\n"
                     f"In the past 30 days, the **high** was {high_30}, the **low** was {low_30}, with an **average** of {average_30} and a **change** of {change_30}%.\n"
                     f"Click here for additional info: [source]({url})"
                 )
             else:
-                await send_error("Exchange rate or historical data not found.", message)
-        except Exception as e:
-            await send_error(f"Error: {str(e)}", message)
-
-    # Handle 'listcur' for listing supported currencies
-    elif message.content.lower().startswith('listcur'):
-        currency_list = "\n".join(
-            f"{i+1}. {CURRENCY_NAMES[c][1]} ({c})" for i, c in enumerate(SUPPORTED_CURRENCIES)
-        )
-        await message.channel.send(
-            f"**Supported currencies:**\n{currency_list}\n\n"
-            "**To use the currency converter, type:**\n`conv [amount] [from_currency] to [target_currency]`"
-        )
+                await message.channel.send(
+                    f"**{amount} {from_currency_name}** is approximately **{converted_amount:.2f} {to_currency_name}** at an exchange rate of **{rate:.4f}**."
+                )
+        else:
+            await send_error("Exchange rate or historical data not found.", message)
+    except Exception as e:
+        await send_error(f"Error: {str(e)}", message)
 
 async def send_error(error_message, original_message):
     error_channel = client.get_channel(ERROR_CHANNEL_ID)
