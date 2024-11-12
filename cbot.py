@@ -149,7 +149,7 @@ async def handle_conversion(message, full_response):
             if full_response:
                 await message.channel.send(
                     f"**{amount} {from_currency_name}** is approximately **{converted_amount:.2f} {to_currency_name}** at an exchange rate of **{rate:.4f}**.\n"
-                    f"In the past 30 days, the **high** was {high_30}, the **low** was {low_30}, with an **average** of {average_30} and a **change** of {change_30}%.\n"
+                    f"In the past 30 days, the **high** was {high_30}, the **low** was {low_30}, with an **average** of {average_30} and a **change** of {change_30}.\n"
                     f"Click here for additional info: [source]({url})"
                 )
             else:
