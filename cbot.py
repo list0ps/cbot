@@ -2,7 +2,8 @@ import discord
 import requests
 from bs4 import BeautifulSoup
 import re
-import os  # Import os for accessing environment variables
+import os
+import asyncio  # Import asyncio for background tasks
 
 # Supported currencies
 SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY']
@@ -52,6 +53,7 @@ client = discord.Client(intents=intents)
 # Placeholder for error logging channel and startup message channel
 ERROR_CHANNEL_ID = 1305733544261455882  # Replace with the actual channel ID for error logs
 STARTUP_CHANNEL_ID = 1305733544261455882  # Replace with the actual channel ID for startup message
+PERIODIC_CHANNEL_ID = 1305815351069507604  # Channel to send periodic messages
 
 @client.event
 async def on_ready():
@@ -60,6 +62,9 @@ async def on_ready():
     startup_channel = client.get_channel(STARTUP_CHANNEL_ID)
     if startup_channel:
         await startup_channel.send("Bot has started and is ready to convert currencies!")
+    
+    # Start background task for periodic messages
+    client.loop.create_task(send_periodic_message())
 
 @client.event
 async def on_message(message):
@@ -110,6 +115,13 @@ async def send_error(error_message, original_message):
     else:
         print("Error channel not found. Please set a valid ERROR_CHANNEL_ID.")
 
-# Retrieve the Discord token from environment variables
+async def send_periodic_message():
+    await client.wait_until_ready()  # Ensure bot is fully ready
+    channel = client.get_channel(PERIODIC_CHANNEL_ID)
+    while True:
+        if channel:
+            await channel.send("This is a periodic message sent every 28 minutes. Prevents dynos sleeping on heroku.")
+        await asyncio.sleep(28 * 60)  # Wait 28 minutes
+
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 client.run(DISCORD_TOKEN)
