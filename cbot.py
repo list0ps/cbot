@@ -40,10 +40,10 @@ def get_exchange_rate(from_currency, to_currency):
         average_30 = float(table_rows[3].find_all('td')[1].text)
         change_30 = table_rows[4].find_all('td')[1].text.strip()
         
-        return rate, high_30, low_30, average_30, change_30
+        return rate, high_30, low_30, average_30, change_30, url
     else:
         print(f"Failed to retrieve page. Status code: {response.status_code}")
-        return None, None, None, None, None
+        return None, None, None, None, None, None
 
 # Initialize Discord bot with intents
 intents = discord.Intents.default()
@@ -89,7 +89,7 @@ async def on_message(message):
                 )
                 return
 
-            rate, high_30, low_30, average_30, change_30 = get_exchange_rate(from_currency, to_currency)
+            rate, high_30, low_30, average_30, change_30, url = get_exchange_rate(from_currency, to_currency)
 
             if rate:
                 converted_amount = amount * rate
@@ -102,7 +102,8 @@ async def on_message(message):
 
                 await message.channel.send(
                     f"**{amount} {from_currency_name}** is approximately **{converted_amount:.2f} {to_currency_name}** at an exchange rate of **{rate:.4f}**.\n"
-                    f"In the past 30 days, the **high** was {high_30}, the **low** was {low_30}, with an **average** of {average_30} and a **change** of {change_30}."
+                    f"In the past 30 days, the **high** was {high_30}, the **low** was {low_30}, with an **average** of {average_30} and a **change** of {change_30}%.\n"
+                    f"Click here for additional info: [source]({url})"
                 )
             else:
                 await send_error("Exchange rate or historical data not found.", message)
