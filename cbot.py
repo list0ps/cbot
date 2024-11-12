@@ -80,7 +80,13 @@ async def on_message(message):
             to_currency = parts[4].upper()
 
             if from_currency not in SUPPORTED_CURRENCIES or to_currency not in SUPPORTED_CURRENCIES:
-                await message.channel.send(f"Supported currencies are: {', '.join([CURRENCY_NAMES[c][1] for c in SUPPORTED_CURRENCIES])}")
+                supported_currencies = "\n".join(
+                    f"{i+1}. {CURRENCY_NAMES[c][1]} ({c})" for i, c in enumerate(SUPPORTED_CURRENCIES)
+                )
+                await message.channel.send(
+                    f"**That's not a currency dumbfuck. Supported currencies are:**\n{supported_currencies}\n\n"
+                    "**To use the currency converter, type:**\n`conv [amount] [from_currency] to [target_currency]`"
+                )
                 return
 
             rate, high_30, low_30, average_30, change_30 = get_exchange_rate(from_currency, to_currency)
@@ -105,8 +111,13 @@ async def on_message(message):
 
     # Handle 'listcur' for listing supported currencies
     elif message.content.lower().startswith('listcur'):
-        currency_list = "\n".join(f"{i+1}. {CURRENCY_NAMES[c][1]}" for i, c in enumerate(SUPPORTED_CURRENCIES))
-        await message.channel.send(f"**Supported currencies:**\n{currency_list}")
+        currency_list = "\n".join(
+            f"{i+1}. {CURRENCY_NAMES[c][1]} ({c})" for i, c in enumerate(SUPPORTED_CURRENCIES)
+        )
+        await message.channel.send(
+            f"**Supported currencies:**\n{currency_list}\n\n"
+            "**To use the currency converter, type:**\n`conv [amount] [from_currency] to [target_currency]`"
+        )
 
 async def send_error(error_message, original_message):
     error_channel = client.get_channel(ERROR_CHANNEL_ID)
