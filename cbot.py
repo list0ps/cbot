@@ -6,7 +6,7 @@ import os
 import asyncio  # Import asyncio for background tasks
 
 # Supported currencies
-SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY']
+SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD']
 
 # Mapping of currency codes to (singular name, plural name)
 CURRENCY_NAMES = {
@@ -19,7 +19,9 @@ CURRENCY_NAMES = {
     'EUR': ('Euro', 'Euros'),
     'EGP': ('Egyptian Pound', 'Egyptian Pounds'),
     'SAR': ('Saudi Riyal', 'Saudi Riyals'),
-    'TRY': ('Turkish Lira', 'Turkish Lira')
+    'TRY': ('Turkish Lira', 'Turkish Lira'),
+    'GBP': ('British Pound', 'British Pounds'),
+    'AUD': ('Australian Dollar', 'Australian Dollars')
 }
 
 def get_exchange_rate(from_currency, to_currency):
