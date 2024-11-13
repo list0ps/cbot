@@ -1,6 +1,6 @@
 # Time & Currency Conversion Discord Bot
 
-This is a Discord bot designed to provide time zone conversions, currency conversions, and periodic messages to prevent dyno sleeping on Heroku. The bot supports various commands for users to get the current time for a given location, convert times between time zones, and convert currencies with detailed information.
+This is a Discord bot designed to provide time look-ups and time and currency conversions. Made for my discord server with an exceedingly international group of friends.
 
 ## Features
 - **Time Zone Conversion:** Convert time from one location to another, including support for multiple time zones within a country.
