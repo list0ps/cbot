@@ -10,7 +10,7 @@ from datetime import datetime  # Add this for date and time handling
 # Supported currencies
 SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD']
 
-# Define the global timezones dictionary
+# Globally defining the timezones dictionary
 timezones_dict = {
     'newzealand': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
                    ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
@@ -58,8 +58,7 @@ timezones_dict = {
 }
 
 
-
-# Mapping of currency codes to (singular name, plural name)
+# Mapping currency codes to (singular name, plural name) where anything but 1 returns plural (or so i hope)
 CURRENCY_NAMES = {
     'USD': ('United States Dollar', 'United States Dollars'),
     'NZD': ('New Zealand Dollar', 'New Zealand Dollars'),
@@ -75,7 +74,7 @@ CURRENCY_NAMES = {
     'AUD': ('Australian Dollar', 'Australian Dollars')
 }
 
-# Abbreviation mapping for countries
+# Abbreviation mapping for countries used 'ctlist' in on_message
 COUNTRY_ABBREVIATIONS = {
     'newzealand': 'NZ',
     'australia': 'AU',
@@ -94,7 +93,7 @@ COUNTRY_ABBREVIATIONS = {
     'switzerland': 'CH',
 }
 
-
+#web scrapper bs from chatgpt to fetch conversion info 
 def get_exchange_rate(from_currency, to_currency):
     url = f"https://wise.com/us/currency-converter/{from_currency.lower()}-to-{to_currency.lower()}-rate?amount=1000"
     response = requests.get(url)
@@ -119,9 +118,9 @@ def get_exchange_rate(from_currency, to_currency):
         return None, None, None, None, None, None
     
     
-# Updated `get_current_time` function with additional cities for Denmark, Netherlands, Finland, and Switzerland
+# Updated `get_current_time` function with additional cities for mor countries
 def get_current_time(location):
-    # Dictionary of countries, abbreviations, cities, and GMT offsets
+    # Dictionary of countries, abbreviations, cities and GMT offsets
     timezones_dict = {
         'newzealand': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
                        ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
@@ -202,12 +201,12 @@ def get_current_time(location):
                         ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')]
     }
 
-    # Normalize input for case-insensitive matching
+    # Normalizing input for case-insensitive matching because alex is weird
     location = location.strip().casefold()
 
     results = []
 
-    # Check if location is a country or abbreviation
+    # Check if location is a country or abbreviation 
     if location in timezones_dict:
         for city, abbreviation, timezone, gmt_offset in timezones_dict[location]:
             tz = pytz.timezone(timezone)
@@ -227,9 +226,9 @@ def get_current_time(location):
     return None
 
 
-# Updated `convert_time` function for accurate conversions
+# Updated `convert_time` function for accurate conversions, was broken because misalignment of full names
 def convert_time(time_str, from_location, to_location):
-    # Use the same `timezones_dict` as in get_current_time
+    # Uses the same `timezones_dict` as in get_current_time
     timezones_dict = {
         'newzealand': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
                        ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
@@ -310,11 +309,11 @@ def convert_time(time_str, from_location, to_location):
                         ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')]
     }
 
-    # Normalize inputs for case-insensitive matching
+    # Normalizing inputs for case-insensitive matching
     from_location = from_location.strip().casefold()
     to_location = to_location.strip().casefold()
 
-    # Gather entries for source and destination locations
+    # Gathering entries for source and destination locations
     from_entries = [entry for country, cities in timezones_dict.items() for entry in cities if from_location in {country, entry[0], entry[1]}]
     to_entries = [entry for country, cities in timezones_dict.items() for entry in cities if to_location in {country, entry[0], entry[1]}]
 
@@ -338,16 +337,17 @@ def convert_time(time_str, from_location, to_location):
     return list(set(converted_times))  # Remove duplicates
 
 
-# Initialize Discord bot with intents
+# Initialize Discord bot with intents - probably should've been at the very top but cuck it we ball
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
 # Placeholder for error logging channel and startup message channel
-ERROR_CHANNEL_ID = 1305733544261455882  # Replace with the actual channel ID for error logs
-STARTUP_CHANNEL_ID = 1305733544261455882  # Replace with the actual channel ID for startup message
+ERROR_CHANNEL_ID = 1305733544261455882  # error logs
+STARTUP_CHANNEL_ID = 1305733544261455882  # channel ID for startup message
 PERIODIC_CHANNEL_ID = 1305815351069507604  # Channel to send periodic messages
 
+# startup message
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user}')
@@ -356,8 +356,9 @@ async def on_ready():
     if startup_channel:
         await startup_channel.send("Bot has started and is ready to convert currencies!")
     
-    # Start background task for periodic messages
+    # Start background task for periodic messages so heroku doesn't go bonkers
     client.loop.create_task(send_periodic_message())
+
 
 @client.event
 async def on_message(message):
@@ -415,8 +416,6 @@ async def on_message(message):
     )
 
 
-# Inside on_message event in the `elif` chain of commands
-
 # Handle 'time' command
     elif message.content.lower().startswith('time '):
         location_name = message.content[5:].strip()
@@ -457,9 +456,30 @@ async def on_message(message):
             try:
                 time_str, origin_location = parts[0].rsplit(' ', 1)
                 destination_location = parts[1].strip()
+
                 converted_times = convert_time(time_str, origin_location, destination_location)
+
                 if converted_times:
-                    await message.channel.send("\n".join(converted_times))
+                    # Add the country name and ensure GMT is placed at the end
+                    formatted_times = []
+                    for converted_time in converted_times:
+                        # Extract destination city, country, and GMT offset
+                        for country, cities in timezones_dict.items():
+                            for city, code, _, gmt_offset in cities:
+                                if city.lower() == destination_location.lower() or code.lower() == destination_location.lower():
+                                    country_name = country.title()
+                                    # Correctly format the final output
+                                    time_part = converted_time.split(",")[0]  # Extract time part
+                                    formatted_times.append(f"{time_part}, {country_name}, {gmt_offset}.")
+                                    break
+                            else:
+                                continue
+                            break
+                        else:
+                            # If no country is found, fallback to original response
+                            formatted_times.append(f"{converted_time}.")
+
+                    await message.channel.send("\n".join(formatted_times))
                 else:
                     await message.channel.send(
                         "Timezone(s) unsupported - type 'ctlist' for supported timezones and cities."
@@ -474,6 +494,7 @@ async def on_message(message):
             )
 
 
+# actual conversion happens here (hopefully)
 async def handle_conversion(message, full_response):
     try:
         parts = message.content.split()
