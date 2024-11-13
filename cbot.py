@@ -351,12 +351,16 @@ PERIODIC_CHANNEL_ID = 1305815351069507604  # Channel to send periodic messages
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user}')
+    
+    # Change the bot's presence
+    await client.change_presence(activity=discord.Game(name='time and money.'))
+
     # Send a startup message to the designated channel
     startup_channel = client.get_channel(STARTUP_CHANNEL_ID)
     if startup_channel:
         await startup_channel.send("Bot has started and is ready to convert currencies!")
     
-    # Start background task for periodic messages so heroku doesn't go bonkers
+    # Start background task for periodic messages so Heroku doesn't go bonkers
     client.loop.create_task(send_periodic_message())
 
 
