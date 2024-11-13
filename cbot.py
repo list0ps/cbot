@@ -10,6 +10,55 @@ from datetime import datetime  # Add this for date and time handling
 # Supported currencies
 SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD']
 
+# Define the global timezones dictionary
+timezones_dict = {
+    'newzealand': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
+                   ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
+                   ('christchurch', 'chc', 'Pacific/Auckland', 'GMT+13'), 
+                   ('hamilton', 'hlz', 'Pacific/Auckland', 'GMT+13')],
+    'australia': [('sydney', 'syd', 'Australia/Sydney', 'GMT+11'), 
+                  ('melbourne', 'mel', 'Australia/Melbourne', 'GMT+11'), 
+                  ('brisbane', 'bne', 'Australia/Brisbane', 'GMT+10'), 
+                  ('perth', 'per', 'Australia/Perth', 'GMT+8'), 
+                  ('adelaide', 'adl', 'Australia/Adelaide', 'GMT+10.5'), 
+                  ('canberra', 'cbr', 'Australia/Sydney', 'GMT+11')],
+    'bangladesh': [('dhaka', 'dac', 'Asia/Dhaka', 'GMT+6')],
+    'malaysia': [('kuala lumpur', 'kl', 'Asia/Kuala_Lumpur', 'GMT+8')],
+    'mauritius': [('port louis', 'plu', 'Indian/Mauritius', 'GMT+4')],
+    'canada': [('toronto', 'yyz', 'America/Toronto', 'GMT-5'), 
+               ('vancouver', 'yvr', 'America/Vancouver', 'GMT-8'), 
+               ('montreal', 'yul', 'America/Toronto', 'GMT-5'), 
+               ('calgary', 'yyc', 'America/Edmonton', 'GMT-7'), 
+               ('ottawa', 'yow', 'America/Toronto', 'GMT-5')],
+    'unitedstates': [('new york', 'nyc', 'America/New_York', 'GMT-5'), 
+                     ('los angeles', 'lax', 'America/Los_Angeles', 'GMT-8'), 
+                     ('chicago', 'chi', 'America/Chicago', 'GMT-6'), 
+                     ('houston', 'hou', 'America/Chicago', 'GMT-6'), 
+                     ('phoenix', 'phx', 'America/Phoenix', 'GMT-7'), 
+                     ('seattle', 'sea', 'America/Los_Angeles', 'GMT-8'), 
+                     ('miami', 'mia', 'America/New_York', 'GMT-5')],
+    'england': [('london', 'lon', 'Europe/London', 'GMT+0'), 
+                ('manchester', 'man', 'Europe/London', 'GMT+0'), 
+                ('birmingham', 'bhx', 'Europe/London', 'GMT+0')],
+    'germany': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
+                ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
+                ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
+    'france': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
+               ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
+               ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
+    'italy': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
+              ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
+              ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
+    'denmark': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
+    'netherlands': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
+                    ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
+    'finland': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
+    'switzerland': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
+                    ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')]
+}
+
+
+
 # Mapping of currency codes to (singular name, plural name)
 CURRENCY_NAMES = {
     'USD': ('United States Dollar', 'United States Dollars'),
@@ -25,6 +74,26 @@ CURRENCY_NAMES = {
     'GBP': ('British Pound', 'British Pounds'),
     'AUD': ('Australian Dollar', 'Australian Dollars')
 }
+
+# Abbreviation mapping for countries
+COUNTRY_ABBREVIATIONS = {
+    'newzealand': 'NZ',
+    'australia': 'AU',
+    'bangladesh': 'BD',
+    'malaysia': 'MY',
+    'mauritius': 'MU',
+    'canada': 'CA',
+    'unitedstates': 'US',
+    'england': 'UK',
+    'germany': 'DE',
+    'france': 'FR',
+    'italy': 'IT',
+    'denmark': 'DK',
+    'netherlands': 'NL',
+    'finland': 'FI',
+    'switzerland': 'CH',
+}
+
 
 def get_exchange_rate(from_currency, to_currency):
     url = f"https://wise.com/us/currency-converter/{from_currency.lower()}-to-{to_currency.lower()}-rate?amount=1000"
@@ -363,6 +432,24 @@ async def on_message(message):
                 "Timezone(s) unsupported - type 'ctlist' for supported timezones and cities."
             )
 
+    
+    elif message.content.lower().startswith('ctlist'):
+        response = []  # Initialize response
+
+        for country, cities in sorted(timezones_dict.items()):
+         # Get abbreviation from the dictionary, default to blank if not found
+                abbreviation = COUNTRY_ABBREVIATIONS.get(country, "")
+                country_heading = f"**__{country.title()} ({abbreviation})__**" if abbreviation else f"**__{country.title()}__**"
+                response.append(country_heading)
+
+            # Cities with their codes in a single line
+                cities_list = ", ".join([f"{city.title()} ({code.upper()})" for city, code, _, _ in sorted(cities)])
+                response.append(cities_list)
+                response.append("")  # Blank line for readability
+
+    # Send the response as a single message
+        await message.channel.send("\n".join(response))
+
 # Handle 'convt' command
     elif message.content.lower().startswith('convt '):
         parts = message.content[6:].split(' to ')
@@ -385,70 +472,6 @@ async def on_message(message):
             await message.channel.send(
                 "Invalid syntax. Use `convt <time> <origin location> to <destination location>`."
             )
-
-    elif message.content.lower().startswith('ctlist'):
-        timezones_dict = {
-        'newzealand': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
-                       ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
-                       ('christchurch', 'chc', 'Pacific/Auckland', 'GMT+13'), 
-                       ('hamilton', 'hlz', 'Pacific/Auckland', 'GMT+13')],
-        'australia': [('sydney', 'syd', 'Australia/Sydney', 'GMT+11'), 
-                      ('melbourne', 'mel', 'Australia/Melbourne', 'GMT+11'), 
-                      ('brisbane', 'bne', 'Australia/Brisbane', 'GMT+10'), 
-                      ('perth', 'per', 'Australia/Perth', 'GMT+8'), 
-                      ('adelaide', 'adl', 'Australia/Adelaide', 'GMT+10.5'), 
-                      ('canberra', 'cbr', 'Australia/Sydney', 'GMT+11')],
-        'bangladesh': [('dhaka', 'dac', 'Asia/Dhaka', 'GMT+6')],
-        'malaysia': [('kuala lumpur', 'kl', 'Asia/Kuala_Lumpur', 'GMT+8')],
-        'mauritius': [('port louis', 'plu', 'Indian/Mauritius', 'GMT+4')],
-        'canada': [('toronto', 'yyz', 'America/Toronto', 'GMT-5'), 
-                   ('vancouver', 'yvr', 'America/Vancouver', 'GMT-8'), 
-                   ('montreal', 'yul', 'America/Toronto', 'GMT-5'), 
-                   ('calgary', 'yyc', 'America/Edmonton', 'GMT-7'), 
-                   ('ottawa', 'yow', 'America/Toronto', 'GMT-5')],
-        'unitedstates': [('new york', 'nyc', 'America/New_York', 'GMT-5'), 
-                         ('los angeles', 'lax', 'America/Los_Angeles', 'GMT-8'), 
-                         ('chicago', 'chi', 'America/Chicago', 'GMT-6'), 
-                         ('houston', 'hou', 'America/Chicago', 'GMT-6'), 
-                         ('phoenix', 'phx', 'America/Phoenix', 'GMT-7'), 
-                         ('seattle', 'sea', 'America/Los_Angeles', 'GMT-8'), 
-                         ('miami', 'mia', 'America/New_York', 'GMT-5'),
-                         ('atlanta', 'atl', 'America/New_York', 'GMT-5'),
-                         ('dallas', 'dfw', 'America/Chicago', 'GMT-6')],
-        'england': [('london', 'lon', 'Europe/London', 'GMT+0'), 
-                    ('manchester', 'man', 'Europe/London', 'GMT+0'), 
-                    ('birmingham', 'bhx', 'Europe/London', 'GMT+0'), 
-                    ('liverpool', 'lpl', 'Europe/London', 'GMT+0')],
-        'germany': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
-                    ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
-                    ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
-        'france': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
-                   ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
-                   ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
-        'italy': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
-                  ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
-                  ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
-        'netherlands': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
-                        ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
-        'denmark': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
-        'finland': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
-        'switzerland': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
-                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')]
-    }
-
-    response = []
-    for country, cities in sorted(timezones_dict.items()):
-        # Country heading with abbreviation
-        country_heading = country.title()
-        abbreviation = f" ({country[:2].upper()})" if country in ['newzealand', 'australia', 'bangladesh', 'malaysia', 'mauritius', 'canada', 'unitedstates', 'england'] else ""
-        response.append(f"**__{country_heading}{abbreviation}__**")
-        # Cities with their codes in a single line
-        cities_list = ", ".join([f"{city.title()} ({code.upper()})" for city, code, _, _ in sorted(cities)])
-        response.append(cities_list)
-        response.append("")  # Blank line for readability
-
-    # Send the response as a single message
-    await message.channel.send("\n".join(response))
 
 
 async def handle_conversion(message, full_response):
