@@ -408,8 +408,8 @@ client = discord.Client(intents=intents)
 
 # Placeholder for error logging channel and startup message channel
 ERROR_CHANNEL_ID = 1305733544261455882  # error logs
-STARTUP_CHANNEL_ID = 1305733544261455882  # channel ID for startup message
-PERIODIC_CHANNEL_ID = 1305815351069507604  # Channel to send periodic messages
+STARTUP_CHANNEL_ID = 1305733544261455882  # channel ID for startup messages
+PERIODIC_CHANNEL_ID = 1305815351069507604  # spams 28m so heroku doesn't bonk us
 
 # startup message
 @client.event
@@ -432,6 +432,31 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+
+  # Check if the message is in a DM (Direct Message)
+    if isinstance(message.channel, discord.DMChannel):
+        target_channel = client.get_channel(1306617117528952955)  # Replace with the target channel ID
+
+        # Check if the target channel exists
+        if target_channel:
+            # Send the content of the DM (if there's any text)
+            embed = discord.Embed(
+                title="New DM Received",
+                description=message.content if message.content else "[No Text]",
+                color=discord.Color.dark_teal()  # Use a green color for DM notifications
+            )
+            embed.add_field(name="From", value=f"{message.author} (ID: {message.author.id})", inline=False)
+            
+            # Forward the message embed to the target channel
+            await target_channel.send(embed=embed)
+
+            # Forward any attachments (images, files)
+            if message.attachments:
+                for attachment in message.attachments:
+                    await target_channel.send(f"Attachment: {attachment.url}")
+        else:
+            print("Target channel not found.")
+    
 
     # Listserv command: Only accessible by the bot owner
 
