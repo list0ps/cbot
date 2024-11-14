@@ -101,7 +101,7 @@ CURRENCY_NAMES = {
     'AUD': ('Australian Dollar', 'Australian Dollars')
 }
 
-# Abbreviation mapping for countries used 'ctlist' in on_message
+# Abbreviation mapping for countries used 'tlist' in on_message
 COUNTRY_ABBREVIATIONS = {
     'newzealand': 'NZ',
     'australia': 'AU',
@@ -433,6 +433,53 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    # Listserv command: Only accessible by the bot owner
+
+    if message.content.lower() == "listserv":
+        if message.author.id != 340485392434200576: #admin ID
+            await message.channel.send("You do not have permission to use this command.")
+            return
+
+        guilds = client.guilds
+        if guilds:
+            guild_list = "\n".join(
+                [f"- **{guild.name}** (ID: {guild.id}, Members: **{guild.member_count}**)" for guild in guilds]
+            )
+            await message.channel.send(f"**The bot is in the following servers:**\n{guild_list}")
+        else:
+            await message.channel.send("**The bot is not in any servers.**")
+        return
+
+    if message.content.lower() == "serverinfo":
+        #if message.author.id != 340485392434200576: #admin ID
+            #await message.channel.send("You do not have permission to use this command.")
+            #return
+
+        guild = message.guild
+        if guild:
+            embed = discord.Embed(title=f"Server Info for **{guild.name}**", color=discord.Color.blue())
+            embed.add_field(name="Server ID", value=guild.id, inline=False)
+            embed.add_field(name="Owner", value="Who knows?", inline=False)
+            embed.add_field(name="Member Count", value=guild.member_count, inline=False)
+            embed.add_field(name="Boost Count", value=guild.premium_subscription_count, inline=False)
+            embed.add_field(name="Text Channels", value=len(guild.text_channels), inline=False)
+            embed.add_field(name="Voice Channels", value=len(guild.voice_channels), inline=False)
+            embed.add_field(name="Created At", value=guild.created_at.strftime('%Y-%m-%d %H:%M:%S'), inline=False)
+            
+            # Set server banner if available
+            #if guild.banner:
+            #    embed.set_image(url=guild.banner.url)
+
+            # Set server icon as thumbnail if available
+            if guild.icon:
+                embed.set_thumbnail(url=guild.icon.url)
+
+            await message.channel.send(embed=embed)
+        else:
+            await message.channel.send("This command must be run in a server.")
+
+
+
     # Handle 'convert' or variations like 'Convert' and 'conv' (short response)
     if message.content.lower().startswith('convert ') or message.content.lower().startswith('conv '):
         await handle_conversion(message, full_response=False)
@@ -443,19 +490,33 @@ async def on_message(message):
 
     # Handle 'chelp' for showing syntax and examples
     elif message.content.lower().startswith('chelp'):
-        await message.channel.send(
-            "**Currency Conversion Help**\n\n"
-            "**1. Basic Conversion:**\n"
-            "`conv [amount] [from_currency] to [target_currency]`\n"
-            "Example: `conv 100 USD to CAD`\n"
-            "Provides a short response with the conversion rate.\n\n"
-            "**2. Full Conversion with Details:**\n"
-            "`convf [amount] [from_currency] to [target_currency]`\n"
-            "Example: `convf 100 USD to CAD`\n"
-            "Provides a detailed response including 30-day high, low, average, change, and source link.\n\n"
-            
-            "Type `clist` to view all supported currencies."
+        embed = discord.Embed(
+            title="Currency Conversion Help",
+            description="Learn how to use the currency conversion commands effectively.",
+            color=discord.Color.dark_green()  # Set the embed color to green
         )
+        embed.add_field(
+            name="1. Basic Conversion",
+            value="`conv [amount] [from_currency] to [target_currency]`\n"
+                  "Example: `conv 100 USD to CAD`\n"
+                  "Provides a short response with the conversion rate.",
+            inline=False
+        )
+        embed.add_field(
+            name="2. Full Conversion with Details",
+            value="`convf [amount] [from_currency] to [target_currency]`\n"
+                  "Example: `convf 100 USD to CAD`\n"
+                  "Provides a detailed response including 30-day high, low, average, change, and source link.",
+            inline=False
+        )
+        embed.add_field(
+            name="Additional Commands",
+            value="Type `clist` to view all supported currencies."
+            "You can make these conversions __privately__ too! **Slide into my DMs ;)**",
+            inline=False
+        )
+        await message.channel.send(embed=embed)
+
 # Add this to the on_message handler to handle the `timez` command
     elif message.content.lower().startswith('time '):
         await handle_time_command(message)
@@ -465,31 +526,75 @@ async def on_message(message):
         currency_list = "\n".join(
             f"{i+1}. {CURRENCY_NAMES[c][1]} ({c})" for i, c in enumerate(SUPPORTED_CURRENCIES)
         )
-        await message.channel.send(
-            f"**Supported currencies:**\n{currency_list}\n\n"
-            "**To use the currency converter, type:**\n"
-            "`conv [amount] [from_currency] to [target_currency]`\n"
-            "`convf [amount] [from_currency] to [target currency]` will return more information with source."
+        embed = discord.Embed(
+            title="Supported Currencies",
+            description="A complete list of supported currencies for the converter.",
+            color=discord.Color.dark_green()  # Set the embed color to dark green
         )
-# Handle 'cthelp' for listing supported timezones
-    elif message.content.lower().startswith('cthelp'):
-        await message.channel.send(
-            "**time - Current Time:**\n"
-            "`time <location>` - Provides the current time for the specified city or country.\n"
-            "Example: `time Kuala Lumpur`, `time MY`, or `time Malaysia`.\n"
-            "Capitalisation does not matter.\n\n"
-            "**time @username - User Time:**\n"
-            "`time @username` - Provides the current time for the mentioned user based on their configured city.\n"
-            "Example: `time @Zer0`.\n\n"
-            "**convt - Time Zone Conversion:**\n"
-            "`convt <time> <origin location> to <destination location>` - Converts time from one location to another.\n"
-            "Example: `convt 6pm Malaysia to Australia`.\n"
-            "If a country has multiple time zones, all zones will be listed; single cities will only show one timezone.\n"
-            "**Note:** Minutes are not supported; only hour formats like 6pm or 8am will work.\n\n"
-            "`convt <time> @user1 to @user2` - Converts time from one user's location to another's location.\n"
-            "Example: `convt 2pm @Zer0 to @strangyyy`.\n\n"
-            "Type `ctlist` to view all supported countries / cities with codes for easy typing."
+        embed.add_field(
+            name="Currency List",
+            value=currency_list,
+            inline=False
         )
+        embed.add_field(
+            name="How to Use",
+            value="`conv [amount] [from_currency] to [target_currency]`\n"
+                  "Example: `conv 100 USD to CAD`\n\n"
+                  "`convf` returns more information with source.\n",
+            inline=False
+        )
+        # Add the 'Want to Add a Currency?' message
+        embed.add_field(
+            name="Want to Add a Currency?",
+            value="Contact <@340485392434200576>.",
+            inline=False
+        )
+
+        await message.channel.send(embed=embed)
+
+
+    # Handle 'thelp' for listing supported timezones
+    elif message.content.lower().startswith('thelp'):
+        embed = discord.Embed(
+            title="Time Zone Help",
+            description="Learn how to use time-related commands effectively.",
+            color=discord.Color.dark_blue()  # Set the embed color to dark blue
+        )
+        embed.add_field(
+            name="1. Current Time",
+            value="`time <location>` - Provides the current time for the specified city or country.\n"
+                  "Example: `time Kuala Lumpur`, `time MY`, or `time Malaysia`.\n"
+                  "Capitalisation does not matter.",
+            inline=False
+        )
+        embed.add_field(
+            name="2. User Time",
+            value="`time @username` - Provides the current time for the mentioned user based on their configured city.\n"
+                  "Example: `time @Zer0`.",
+            inline=False
+        )
+        embed.add_field(
+            name="3. Time Zone Conversion",
+            value="`convt <time> <origin location> to <destination location>` - Converts time from one location to another.\n"
+                  "Example: `convt 6pm Malaysia to Australia`.\n"
+                  "If a country has multiple time zones, all zones will be listed; single cities will only show one timezone.\n"
+                  "**Note:** Minutes are not supported; only hour formats like 6pm or 8am will work.",
+            inline=False
+        )
+        embed.add_field(
+            name="4. User-to-User Time Conversion",
+            value="`convt <time> @user1 to @user2` - Converts time from one user's location to another's location.\n"
+                  "Example: `convt 2pm @Zer0 to @strangyyy`.",
+            inline=False
+        )
+        embed.add_field(
+            name="Additional Resources",
+            value="Type `tlist` to view all supported countries / cities with codes for easy typing.\n"
+                    "You can make these conversions __privately__ too! **Slide into my DMs ;)**",
+            inline=False
+        )
+        await message.channel.send(embed=embed)
+
 
 
 # Handle 'time' command
@@ -504,26 +609,40 @@ async def on_message(message):
             await message.channel.send("\n".join(formatted_times))
         else:
             await message.channel.send(
-                "Timezone(s) unsupported - type 'ctlist' for supported timezones and cities."
+                "Timezone(s) unsupported - type 'tlist' for supported timezones and cities."
             )
 
     
-    elif message.content.lower().startswith('ctlist'):
-        response = []  # Initialize response
+    elif message.content.lower().startswith('tlist'):
+        embed = discord.Embed(
+            title="Supported Timezones",
+            description="A list of countries and their cities you can convert between. Yes you can use abbreviations.",
+            color=discord.Color.dark_blue()  # Set the embed color to dark blue
+        )
+
+        country_number = 1  # Start numbering countries
 
         for country, cities in sorted(timezones_dict.items()):
-         # Get abbreviation from the dictionary, default to blank if not found
-                abbreviation = COUNTRY_ABBREVIATIONS.get(country, "")
-                country_heading = f"**__{country.title()} ({abbreviation})__**" if abbreviation else f"**__{country.title()}__**"
-                response.append(country_heading)
+            # Get abbreviation from the dictionary, default to blank if not found
+            abbreviation = COUNTRY_ABBREVIATIONS.get(country, "")
+            country_heading = f"{country_number}. {country.title()} ({abbreviation})" if abbreviation else f"{country_number}. {country.title()}"
 
-            # Cities with their codes in a single line
-                cities_list = ", ".join([f"{city.title()} ({code.upper()})" for city, code, _, _ in sorted(cities)])
-                response.append(cities_list)
-                response.append("")  # Blank line for readability
+            # Cities listed in-line, separated by commas
+            cities_list = ", ".join([f"{city.title()} ({code.upper()})" for city, code, _, _ in sorted(cities)])
 
-    # Send the response as a single message
-        await message.channel.send("\n".join(response))
+            # Add each country and its cities as a new field
+            embed.add_field(name=country_heading, value=cities_list, inline=False)
+
+            country_number += 1  # Increment the country number for the next iteration
+
+        # Add the message about adding cities
+        embed.add_field(
+            name="Want to Add a City?",
+            value="Contact <@340485392434200576>.",
+            inline=False
+        )
+
+        await message.channel.send(embed=embed)
 
 # Handle 'convt' command
     elif message.content.lower().startswith('convt '):
@@ -576,7 +695,7 @@ async def handle_time_command(message):
             await message.channel.send("\n".join(formatted_times))
         else:
             await message.channel.send(
-                "Timezone(s) unsupported - type 'ctlist' for supported timezones and cities."
+                "Timezone(s) unsupported - type 'tlist' for supported timezones and cities."
             )
 
 # allows converting user - user time 
@@ -633,7 +752,7 @@ async def handle_convt_command(message):
                 await message.channel.send("\n".join(converted_times))
             else:
                 await message.channel.send(
-                    "Timezone(s) unsupported - type 'ctlist' for supported timezones and cities."
+                    "Timezone(s) unsupported - type 'tlist' for supported timezones and cities."
                 )
         except ValueError:
             await message.channel.send(
