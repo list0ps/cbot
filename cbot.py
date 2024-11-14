@@ -54,9 +54,36 @@ timezones_dict = {
                     ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
     'finland': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
     'switzerland': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
-                    ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')]
+                    ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
+    'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
+    
 }
 
+# dictionary to store user ID, username, and city mappings
+USER_TIMEZONE_MAPPING = {
+    340485392434200576: ("list", "hlz"),
+    744440440786255994: ("Bronoy", "dac"),
+    697901157472796826: ("Bush", "dac"),
+    439530718352375827: ("curlysandwich", "nyc"),
+    626150404333371422: ("gl1vch", "yyz"),
+    313373154812755969: ("Ibrahim", "kl"),
+    701305433633194018: ("ItznotHawk", "mel"),
+    709061499066515476: ("mehnaz", "nyc"),
+    719836306569429064: ("Moose", "dac"),
+    665657749207777351: ("Nay", "yyz"),
+    428113253726683137: ("Nowfel", "yyz"),
+    544753860858871831: ("ORANGMAN", "akl"),
+    392683322805059587: ("Relic", "dac"),
+    422394995266551808: ("Shamo_99", "lxm"),
+    692430092592218123: ("Skibby", "kl"),
+    368379417208029185: ("strangyyy", "dac"),
+    488021414759366668: ("tooshiewooshie", "dac"),
+    426522676581105676: ("Verse", "dac"),
+    487064547832627200: ("Alex", "plu"),
+    960839376563236894: ("Yashfi", "kl"),
+    219797015066968064: ("Zer0", "yyz"),
+    425981881138413568: ("ZiWei", "kl"),
+}
 
 # Mapping currency codes to (singular name, plural name) where anything but 1 returns plural (or so i hope)
 CURRENCY_NAMES = {
@@ -84,13 +111,14 @@ COUNTRY_ABBREVIATIONS = {
     'canada': 'CA',
     'unitedstates': 'US',
     'england': 'UK',
-    'germany': 'DE',
+    'germany': 'GER',
     'france': 'FR',
     'italy': 'IT',
     'denmark': 'DK',
     'netherlands': 'NL',
     'finland': 'FI',
     'switzerland': 'CH',
+    'luxembourg' : 'LU'
 }
 
 #web scrapper bs from chatgpt to fetch conversion info 
@@ -187,18 +215,36 @@ def get_current_time(location):
         'germany': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
                     ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
                     ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
+        'ger': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
+                    ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
+                    ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
         'france': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
+                   ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
+                   ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
+        'fr': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
                    ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
                    ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
         'italy': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
                   ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
                   ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
+        'it': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
+                  ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
+                  ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
         'denmark': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
+        'dk': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
         'netherlands': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
                         ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
+        'nl': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
+                        ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
         'finland': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
+        'fi': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
         'switzerland': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
-                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')]
+                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
+        'ch': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
+                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
+        'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
+        'lu': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
+
     }
 
     # Normalizing input for case-insensitive matching because alex is weird
@@ -295,18 +341,36 @@ def convert_time(time_str, from_location, to_location):
         'germany': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
                     ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
                     ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
+        'ger': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
+                    ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
+                    ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
         'france': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
+                   ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
+                   ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
+        'fr': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
                    ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
                    ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
         'italy': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
                   ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
                   ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
+        'it': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
+                  ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
+                  ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
         'netherlands': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
                         ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
+        'nl': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
+                        ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
         'denmark': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
+        'dk': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
         'finland': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
+        'fi': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
         'switzerland': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
-                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')]
+                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
+        'ch': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
+                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
+        'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
+        'lu': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
+        
     }
 
     # Normalizing inputs for case-insensitive matching
@@ -392,6 +456,9 @@ async def on_message(message):
             
             "Type `clist` to view all supported currencies."
         )
+# Add this to the on_message handler to handle the `timez` command
+    elif message.content.lower().startswith('time '):
+        await handle_time_command(message)
 
     # Handle 'clist' for listing supported currencies
     elif message.content.lower().startswith('clist'):
@@ -408,16 +475,19 @@ async def on_message(message):
     elif message.content.lower().startswith('cthelp'):
         await message.channel.send(
             "**time - Current Time:**\n"
-         "`time <location>` - Provides the current time for the specified city or country.\n"
-            "Example: `time Kuala Lumpur`, `time MY`, or `time Malaysia`.\n"
-            "Capitalisation does not matter.\n\n"
+            "`time <location>` - Provides the current time in a city or country.\n"
+            "Example: `time Kuala Lumpur`, `time MY`, or `time Malaysia`.\n\n"
+            "**time @username**\n"
+            "`time @username` - Provides the current time for the mentioned user. You have to ping them with @.\n"
+            "Example: `time @Zer0`.\n\n"
             "**convt - Time Zone Conversion:**\n"
             "`convt <time> <origin location> to <destination location>` - Converts time from one location to another.\n"
             "Example: `convt 6pm Malaysia to Australia`.\n"
             "If a country has multiple time zones, all zones will be listed; single cities will only show one timezone.\n"
             "**Note:** Minutes are not supported; only hour formats like 6pm or 8am will work.\n\n"
+            "All commands are case-_insensitive_.\n"
             "Type `ctlist` to view all supported countries / cities with codes for easy typing."
-    )
+        )
 
 
 # Handle 'time' command
@@ -495,6 +565,55 @@ async def on_message(message):
         else:
             await message.channel.send(
                 "Invalid syntax. Use `convt <time> <origin location> to <destination location>`."
+            )
+
+
+# function to fetch time for a specific user from user_timezone_mapping
+async def handle_time_command(message):
+    mentioned_users = message.mentions  # Get mentioned users
+
+    if mentioned_users:
+        responses = []
+
+        for user in mentioned_users:
+            user_data = USER_TIMEZONE_MAPPING.get(user.id)
+
+            if not user_data:
+                responses.append(f"No timezone information found for **{user.name}**.")
+                continue
+
+            username, city_abbreviation = user_data
+
+            # Find the city, timezone, and GMT offset
+            for country, cities in timezones_dict.items():
+                for city, abbreviation, timezone, gmt_offset in cities:
+                    if city_abbreviation == abbreviation:
+                        tz = pytz.timezone(timezone)
+                        city_time = datetime.now(tz)
+                        formatted_time = city_time.strftime('%I:%M %p')
+                        responses.append(
+                            f"It's **{formatted_time}** for **{username}**, in {city.title()}, {country.title()}, {gmt_offset}."
+                        )
+                        break
+                else:
+                    continue
+                break
+            else:
+                responses.append(f"City abbreviation `{city_abbreviation}` for **{username}** not found in timezones.")
+
+        await message.channel.send("\n".join(responses))
+
+    else:
+        location_name = message.content[5:].strip()
+        times = get_current_time(location_name)
+        if times:
+            formatted_times = [
+                time.replace(location_name.upper(), location_name.title()) for time in times
+            ]
+            await message.channel.send("\n".join(formatted_times))
+        else:
+            await message.channel.send(
+                "Timezone(s) unsupported - type 'ctlist' for supported timezones and cities."
             )
 
 
