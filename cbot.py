@@ -1037,7 +1037,7 @@ async def handle_conversion(message, full_response):
                 f"{i+1}. {CURRENCY_NAMES[c][1]} ({c})" for i, c in enumerate(SUPPORTED_CURRENCIES)
             )
             await message.channel.send(
-                f"**That's not a currency dumbfuck. Supported currencies are:**\n{supported_currencies}\n\n"
+                f"**Unsupported currency. Supported currencies are:**\n{supported_currencies}\n\n"
                 "**To use the currency converter, type:**\n`conv [amount] [from_currency] to [target_currency]`\n"
                 "`convf [amount] [from_currency] to [target_currency]` will return more information with source."
             )
