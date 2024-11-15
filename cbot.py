@@ -4,11 +4,12 @@ from bs4 import BeautifulSoup
 import re
 import os
 import asyncio  # Import asyncio for background tasks
-import pytz  # Add this for timezone handling
-from datetime import datetime  # Add this for date and time handling
+import pytz  # Adding this for timezone handling
+from datetime import datetime  # Adding this for date and time handling
 
 # Supported currencies
-SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD']
+SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD', 'PHP', 'CNY', 'SGD', 'JPY']
+
 
 # Globally defining the timezones dictionary
 timezones_dict = {
@@ -56,10 +57,14 @@ timezones_dict = {
     'switzerland': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
                     ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
     'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
-    
+    'philippines': [('manila', 'mnl', 'Asia/Manila', 'GMT+8')],
+    'singapore': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
+    'japan': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')]
+
 }
 
 # dictionary to store user ID, username, and city mappings
+# redacted for privacy, obviously 
 USER_TIMEZONE_MAPPING = {
     340485392434200576: ("list", "hlz"),
     744440440786255994: ("Bronoy", "dac"),
@@ -86,6 +91,7 @@ USER_TIMEZONE_MAPPING = {
 }
 
 # Mapping currency codes to (singular name, plural name) where anything but 1 returns plural (or so i hope)
+# Required for both conv and clist
 CURRENCY_NAMES = {
     'USD': ('United States Dollar', 'United States Dollars'),
     'NZD': ('New Zealand Dollar', 'New Zealand Dollars'),
@@ -98,10 +104,15 @@ CURRENCY_NAMES = {
     'SAR': ('Saudi Riyal', 'Saudi Riyals'),
     'TRY': ('Turkish Lira', 'Turkish Lira'),
     'GBP': ('British Pound', 'British Pounds'),
-    'AUD': ('Australian Dollar', 'Australian Dollars')
+    'AUD': ('Australian Dollar', 'Australian Dollars'),
+    'PHP': ('Philippine Peso', 'Philippine Pesos'),
+    'CNY': ('Chinese Yuan', 'Chinese Yuan'),
+    'SGD': ('Singapore Dollar', 'Singapore Dollars'),
+    'JPY': ('Japanese Yen', 'Japanese Yen')
 }
 
-# Abbreviation mapping for countries used 'tlist' in on_message
+
+# Abbreviation mapping for countries used in 'tlist' in on_message
 COUNTRY_ABBREVIATIONS = {
     'newzealand': 'NZ',
     'australia': 'AU',
@@ -118,7 +129,10 @@ COUNTRY_ABBREVIATIONS = {
     'netherlands': 'NL',
     'finland': 'FI',
     'switzerland': 'CH',
-    'luxembourg' : 'LU'
+    'luxembourg' : 'LU',
+    'singapore' : 'SG',
+    'philippines' : 'PH',
+    'japan' : 'JP'
 }
 
 #web scrapper bs from chatgpt to fetch conversion info 
@@ -146,9 +160,10 @@ def get_exchange_rate(from_currency, to_currency):
         return None, None, None, None, None, None
     
     
-# Updated `get_current_time` function with additional cities for mor countries
+# Updated get_current_time function with additional cities for more countries
 def get_current_time(location):
     # Dictionary of countries, abbreviations, cities and GMT offsets
+    # Only way to support country abbreviations was to list them as separate elements (because I suck at python)
     timezones_dict = {
         'newzealand': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
                        ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
@@ -244,10 +259,18 @@ def get_current_time(location):
                         ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
         'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
         'lu': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
+        'philippines': [('manila', 'mnl', 'Asia/Manila', 'GMT+8'), 
+                ('davao', 'dav', 'Asia/Manila', 'GMT+8')],
+        'ph': [('manila', 'mnl', 'Asia/Manila', 'GMT+8'), 
+                ('davao', 'dav', 'Asia/Manila', 'GMT+8')],
+        'singapore': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
+        'sg': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
+        'japan': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')],
+        'jp': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')]
 
     }
 
-    # Normalizing input for case-insensitive matching because alex is weird
+    # Normalizing input for case-insensitive matching because my friend alex is weird
     location = location.strip().casefold()
 
     results = []
@@ -370,6 +393,14 @@ def convert_time(time_str, from_location, to_location):
                         ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
         'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
         'lu': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
+        'philippines': [('manila', 'mnl', 'Asia/Manila', 'GMT+8'), 
+                ('davao', 'dav', 'Asia/Manila', 'GMT+8')],
+        'ph': [('manila', 'mnl', 'Asia/Manila', 'GMT+8'), 
+                ('davao', 'dav', 'Asia/Manila', 'GMT+8')],
+        'singapore': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
+        'sg': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
+        'japan': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')],
+        'jp': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')]
         
     }
 
@@ -385,23 +416,74 @@ def convert_time(time_str, from_location, to_location):
         return [f"**Error:** Could not find timezone information for one of the locations."]
 
     converted_times = []
+    
+    # Group destination cities by timezone
+    cities_by_timezone = {}
+    for to_city, _, to_tz, gmt_offset in to_entries:
+        if to_tz not in cities_by_timezone:
+            cities_by_timezone[to_tz] = []
+        cities_by_timezone[to_tz].append((to_city, gmt_offset))
+
     for from_city, _, from_tz, _ in from_entries:
         tz = pytz.timezone(from_tz)
         current_date = datetime.now()  # Get current date
-        naive_time = datetime.strptime(time_str, "%I%p").replace(
-            year=current_date.year, month=current_date.month, day=current_date.day
-        )  # Ensure time includes current date
+
+        # Parse the input time
+        time_str = time_str.strip().lower()
+
+        # Check if time is in 12-hour or 24-hour format and parse accordingly
+        if 'am' in time_str or 'pm' in time_str:  # 12-hour format
+            try:
+                naive_time = datetime.strptime(time_str, "%I:%M%p")  # 5:34pm
+            except ValueError:
+                naive_time = datetime.strptime(time_str, "%I%p")  # 5pm
+        else:  # 24-hour format (e.g., 17:00, 1700)
+            try:
+                naive_time = datetime.strptime(time_str, "%H:%M")  # 17:00
+            except ValueError:
+                naive_time = datetime.strptime(time_str, "%H%M")  # 1700
+
+        # Replacing current date to preserve year, month, day while parsing time
+        naive_time = naive_time.replace(year=current_date.year, month=current_date.month, day=current_date.day)
+
         aware_time = tz.localize(naive_time)  # Localize to source timezone
 
-        for to_city, _, to_tz, gmt_offset in to_entries:
+        for to_tz, cities in cities_by_timezone.items():
+            # Only take the first city from each timezone group
+            to_city, gmt_offset = cities[0]
             target_tz = pytz.timezone(to_tz)
             converted_time = aware_time.astimezone(target_tz)  # Convert to target timezone
-            converted_times.append(f"**{time_str}** in {from_city.title()} is **{converted_time.strftime('%I:%M %p')}** in {to_city.title()}, {gmt_offset}")
+
+            # Format the time in HH:MM format (24-hour time) for consistency
+            from_time = aware_time.strftime('%H:%M')  # Always format 24-hour time as HH:MM
+            to_time = converted_time.strftime('%H:%M')  # Always format 24-hour time as HH:MM
+
+            # Check if the original time format was 12-hour (contains 'am' or 'pm')
+            if 'am' in time_str or 'pm' in time_str:
+                # If the time was in 12-hour format, respond in 12-hour format
+                from_time = format_time(aware_time, format_12hr=True)
+                to_time = format_time(converted_time, format_12hr=True)
+            else:
+                # If the time was in 24-hour format, keep the 24-hour format
+                from_time = format_time(aware_time, format_12hr=False)
+                to_time = format_time(converted_time, format_12hr=False)
+
+            converted_times.append(f"**{from_time}** in {from_city.title()} is **{to_time}** in {to_city.title()}, {gmt_offset}")
 
     return list(set(converted_times))  # Remove duplicates
 
 
+# Function to format a time object to 12-hour or 24-hour time
+def format_time(time_obj, format_12hr=True):
+    """Formats a datetime object into 12-hour or 24-hour format string."""
+    if format_12hr:
+        return time_obj.strftime('%I:%M%p').lower()  # Convert to 12-hour format (AM/PM)
+    else:
+        return time_obj.strftime('%H:%M')  # Convert to 24-hour format
+
+
 # Initialize Discord bot with intents - probably should've been at the very top but cuck it we ball
+# Also this was introduced in 2023 most likely, wasn't required for discord.py
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
@@ -422,7 +504,7 @@ async def on_ready():
     # Send a startup message to the designated channel
     startup_channel = client.get_channel(STARTUP_CHANNEL_ID)
     if startup_channel:
-        await startup_channel.send("Bot has started and is ready to convert currencies!")
+        await startup_channel.send("I am now online.")
     
     # Start background task for periodic messages so Heroku doesn't go bonkers
     client.loop.create_task(send_periodic_message())
@@ -433,6 +515,7 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+  # DM forwarding, sends any content (text or attachments) sent to bot's DM - to specified channel  
   # Check if the message is in a DM (Direct Message)
     if isinstance(message.channel, discord.DMChannel):
         target_channel = client.get_channel(1306617117528952955)  # Replace with the target channel ID
@@ -458,9 +541,10 @@ async def on_message(message):
             print("Target channel not found.")
     
 
-    # Listserv command: Only accessible by the bot owner
+    # formerly listserv command: Only accessible by the bot owner
+    # lists all servers the bot is in
 
-    if message.content.lower() == "listserv":
+    if message.content.lower() in ["ww -guilds", "worldwise -guilds"]:
         if message.author.id != 340485392434200576: #admin ID
             await message.channel.send("You do not have permission to use this command.")
             return
@@ -475,7 +559,8 @@ async def on_message(message):
             await message.channel.send("**The bot is not in any servers.**")
         return
 
-    if message.content.lower() == "serverinfo":
+    # lists some basic server information - commented out admin restrictor for now 
+    if message.content.lower() in ["serverinfo", "svinfo"]:
         #if message.author.id != 340485392434200576: #admin ID
             #await message.channel.send("You do not have permission to use this command.")
             #return
@@ -503,6 +588,149 @@ async def on_message(message):
         else:
             await message.channel.send("This command must be run in a server.")
 
+    #Large read-me alike. Meant to have complete instructions no one will ever read.
+    elif message.content.lower().startswith(('ww -readme', 'worldwise -readme', 'ww -rm')):
+        embed = discord.Embed(
+        title="Worldwise Bot Full Readme",
+        description="Welcome to the full readme! This is your go-to guide for understanding and using all the features of the Worldwise Bot.\n"
+                    "This is the result of over-engineering currency and time conversions for the mild convenience of not having to swtich tabs.\n\n"
+                    "All commands are case-*in*sensitive.",
+        color=discord.Color.dark_teal()  # Set color to whatever eh
+    )
+
+    # Currency Conversion Help
+        embed.add_field(
+        name="💰 Currency Conversion Help",
+        value="Use the currency conversion features to convert between different currencies with ease. "
+              "Here's how you can use them:",
+        inline=False
+    )
+
+        embed.add_field(
+        name="1. Basic Currency Conversion (conv or convert)",
+        value="`conv [amount] [from_currency] to [target_currency]`\n"
+              "Example 1: `conv 100 USD to CAD`\n"
+              "Example 2: `convert 50 EUR to USD`\n\n"
+              "This command provides a short response with the conversion rate.\n\n",
+        inline=False
+    )
+
+        embed.add_field(
+        name="2. Detailed Currency Conversion (convf or convertfull)",
+        value="`convf [amount] [from_currency] to [target_currency]`\n"
+              "Example 1: `convf 100 USD to CAD`\n"
+              "Example 2: `convertfull 50 EUR to USD`\n\n"
+              "This command gives you detailed information, including:\n"
+              "- Conversion rate\n"
+              "- 30-day high, low, average, and change\n"
+              "- Source link for the data\n\n",
+        inline=False
+    )
+
+        embed.add_field(
+        name="3. Currency List (clist)",
+        value="Type `clist` to view all supported currencies.\n"
+              "The list shows full names and abbreviations, so you can use either.",
+        inline=False
+    )
+
+    # Timezone Help
+        embed.add_field(
+        name="🕰️ Timezone Help",
+        value="Use the time-related features to check the current time or convert time between different locations.",
+        inline=False
+    )
+
+        embed.add_field(
+        name="1. Current Time (time)",
+        value="`time <location>` - Provides the current time for the specified location.\n"
+              "Examples:\n"
+              "- `time KL` (Kuala Lumpur)\n"
+              "- `time MY` (Malaysia)\n"
+              "- `time yyz` (Toronto)\n"
+              "- `time newzealand`\n"
+              "- `time Malaysia`\n\n"
+              "If the country name is two words, like United States, delete the space in-between to use it. i.e. unitedstates or newzealand.\n"
+              "You can use full city and country names or abbreviations from all the supported regions found in ```tlist```.",
+        inline=False
+    )
+
+        embed.add_field(
+        name="2. User Time (time @username)",
+        value="`time @username` - Shows the current time for the mentioned user, based on their configured city.\n"
+              "Example: `time @Zer0`.\n\n"
+              "This works when you directly mention or @ping the user. If a user has their city allocated to them, the bot will show the time accordingly.\n"
+              "Currently, users can't configure their own locations with a command. Ask <@340485392434200576> to change/add your region for support.",
+              
+        inline=False
+    )
+
+        embed.add_field(
+        name="3. Time Zone Conversion (timec or timeconvert)",
+        value="`timec [time] [from_location] to [to_location]`\n"
+              "Example 1: `timec 6pm KL to Australia`\n"
+              "Example 2: `timec 5pm yyz to US`\n"
+              "Example 3: `timec 1am dac to plu`\n"
+              "Example 4: `timec 2am Hamilton to AU`\n\n"
+              "You can use either full location names or abbreviations. The bot will show you the time converted to the destination time zone.\n\n"
+              "If a country has multiple time zones, all of them will be listed for that country.\n\n"
+              "**Supported time formats:**\n"
+              "- 12-hour format: `4:00pm`, `4pm`\n"
+              "- 24-hour format: `16:00`, `1600`\n"
+              "- Military time: `1600`\n"
+              "- Both minutes and hour are supported: `4:23pm` or `1623`",
+        inline=False
+    )
+
+        embed.add_field(
+        name="4. User-to-User Time Conversion (timec)",
+        value="`timec [time] @from_user to @to_user`\n"
+              "Example: `timec 2pm @Zer0 to @strangyyy`\n\n"
+              "This command converts time from one user's region to another's based on their allocated region.",
+        inline=False
+    )
+
+        embed.add_field(
+        name="5. Supported Timezones (tlist)",
+        value="Type `tlist` to view all supported regions and cities with their corresponding timezone codes.\n"
+              "The list shows both full city names and abbreviations.\n\n"
+              "The abbreviations in this list will work accurately with all time-related commands.\n",
+        inline=False
+    )
+
+    # Server Info
+        embed.add_field(
+        name="💻 Server Info (svinfo or serverinfo)",
+        value="Type `svinfo` or `serverinfo` to get information about the server where the bot is active.\n"
+              "This includes:\n"
+              "- Server ID\n"
+              "- Owner\n"
+              "- Member count\n"
+              "- Boost count\n"
+              "- Text channels\n"
+              "- Voice channels\n"
+              "- Server creation date",
+        inline=False
+    )
+
+    # Worldwise Bot Guilds Info
+        embed.add_field(
+        name="🌍 Server List (ww -guilds or worldwise -guilds)",
+        value="Type `ww -guilds` or `worldwise -guilds` to see all the servers the bot is in (inclduing number of users in listed servers).\n"
+              "**Admin only.**\n",
+        inline=False
+    )
+
+    # Final Notes and Contact Info
+        embed.add_field(
+        name="For Help or Additions",
+        value="If you need further assistance or would like to suggest an addition to the bot, feel free to mention me: <@340485392434200576>.\n"
+              "You can also check the full source code and more info at: [Worldwise Bot GitHub](https://github.com/list0ps/Worldwise).",
+        inline=False
+    )
+
+    # Send the embed
+        await message.channel.send(embed=embed)
 
 
     # Handle 'convert' or variations like 'Convert' and 'conv' (short response)
@@ -542,7 +770,7 @@ async def on_message(message):
         )
         await message.channel.send(embed=embed)
 
-# Add this to the on_message handler to handle the `timez` command
+# Adding this to the on_message handler to handle the `time` command
     elif message.content.lower().startswith('time '):
         await handle_time_command(message)
 
@@ -554,7 +782,7 @@ async def on_message(message):
         embed = discord.Embed(
             title="Supported Currencies",
             description="A complete list of supported currencies for the converter.",
-            color=discord.Color.dark_green()  # Set the embed color to dark green
+            color=discord.Color.dark_green()  # Set the embed color 
         )
         embed.add_field(
             name="Currency List",
@@ -568,7 +796,7 @@ async def on_message(message):
                   "`convf` returns more information with source.\n",
             inline=False
         )
-        # Add the 'Want to Add a Currency?' message
+
         embed.add_field(
             name="Want to Add a Currency?",
             value="Contact <@340485392434200576>.",
@@ -582,39 +810,37 @@ async def on_message(message):
     elif message.content.lower().startswith('thelp'):
         embed = discord.Embed(
             title="Time Zone Help",
-            description="Learn how to use time-related commands effectively.",
+            description="Only works with supported regions!",
             color=discord.Color.dark_blue()  # Set the embed color to dark blue
         )
         embed.add_field(
             name="1. Current Time",
-            value="`time <location>` - Provides the current time for the specified city or country.\n"
-                  "Example: `time Kuala Lumpur`, `time MY`, or `time Malaysia`.\n"
-                  "Capitalisation does not matter.",
+            value="`time <location>` - Tells you the current time for the region.\n"
+                  "Example: `time KL`, `time MY`, or `time Malaysia`.\n",
             inline=False
         )
         embed.add_field(
             name="2. User Time",
-            value="`time @username` - Provides the current time for the mentioned user based on their configured city.\n"
+            value="`time @username` - Tells you what time it is for the user you mention.\n"
                   "Example: `time @Zer0`.",
             inline=False
         )
         embed.add_field(
             name="3. Time Zone Conversion",
-            value="`convt <time> <origin location> to <destination location>` - Converts time from one location to another.\n"
-                  "Example: `convt 6pm Malaysia to Australia`.\n"
-                  "If a country has multiple time zones, all zones will be listed; single cities will only show one timezone.\n"
-                  "**Note:** Minutes are not supported; only hour formats like 6pm or 8am will work.",
+            value="`timec` - Converts time from one region to another.\n"
+                  "Example: `timec 6pm KL to Australia`, or `timec 2pm Hamilton to AU`.\n"
+                  "If a country has multiple time zones, all zones will be listed.\n",
             inline=False
         )
         embed.add_field(
             name="4. User-to-User Time Conversion",
-            value="`convt <time> @user1 to @user2` - Converts time from one user's location to another's location.\n"
-                  "Example: `convt 2pm @Zer0 to @strangyyy`.",
+            value="`timec` - Converts time from one user's region to another's.\n"
+                  "Example: `timec 2pm @Zer0 to @strangyyy`.",
             inline=False
         )
         embed.add_field(
-            name="Additional Resources",
-            value="Type `tlist` to view all supported countries / cities with codes for easy typing.\n"
+            name="What's supported?",
+            value="Type `tlist` to view all supported regions with codes for easy typing.\n"
                     "You can make these conversions __privately__ too! **Slide into my DMs ;)**",
             inline=False
         )
@@ -637,6 +863,7 @@ async def on_message(message):
                 "Timezone(s) unsupported - type 'tlist' for supported timezones and cities."
             )
 
+    
     
     elif message.content.lower().startswith('tlist'):
         embed = discord.Embed(
@@ -669,9 +896,10 @@ async def on_message(message):
 
         await message.channel.send(embed=embed)
 
-# Handle 'convt' command
-    elif message.content.lower().startswith('convt '):
-        await handle_convt_command(message)
+    
+# Handle 'timec' command
+    elif message.content.lower().startswith('timec ') or message.content.lower().startswith('timeconvert'):
+        await handle_timec_command(message)
 
 
 
@@ -724,7 +952,8 @@ async def handle_time_command(message):
             )
 
 # allows converting user - user time 
-async def handle_convt_command(message):
+# fixer-upper with ye olde AI to support parsing for 24 hour format with ":"
+async def handle_timec_command(message):
     parts = message.content[6:].split(' to ')
     if len(parts) == 2:
         try:
@@ -781,15 +1010,12 @@ async def handle_convt_command(message):
                 )
         except ValueError:
             await message.channel.send(
-                "Invalid syntax. Use `convt <time> <origin location> to <destination location>` or `convt <time> @user1 to @user2`."
+                "Invalid syntax. Use `timec Xam/pm <origin location> to <destination location>` or `timec <time> @user1 to @user2`."
             )
     else:
         await message.channel.send(
-            "Invalid syntax. Use `convt <time> <origin location> to <destination location>` or `convt <time> @user1 to @user2`."
+            "Invalid syntax. Use `timec <time> <origin location> to <destination location>` or `timec <time> @user1 to @user2`."
         )
-
-
-
 
 # actual conversion happens here (hopefully)
 async def handle_conversion(message, full_response):
