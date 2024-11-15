@@ -651,7 +651,7 @@ async def on_message(message):
               "- `time newzealand`\n"
               "- `time Malaysia`\n\n"
               "If the country name is two words, like United States, delete the space in-between to use it. i.e. unitedstates or newzealand.\n"
-              "You can use full city and country names or abbreviations from all the supported regions found in ```tlist```.",
+              "You can use full city and country names or abbreviations from all the supported regions found in `tlist`.",
         inline=False
     )
 
