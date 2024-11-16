@@ -760,12 +760,12 @@ async def on_message(message):
     )
         embed.add_field(
         name="1. Weather today (weather)",
-        value="`weather <city>,<country_code>` - Provides weather information for the specified location.\n"
+        value="`weather <city>,<country_abbreviation>` - Provides weather information for the specified location.\n"
               "Examples:\n"
               "- `weather Hamilton, NZ` (New Zealand)\n"
               "- `weather Malaysia` \n"
               "Abbreviation and region codes work too such as `weather NZ` but returns highly inaccurate responses. \n"
-              "Best to specify city followed by country code.",
+              "Best to specify city followed by country abbreviation.",
         inline=False
     
     )
@@ -821,8 +821,8 @@ async def on_message(message):
         )
         embed.add_field(
             name="Usage",
-            value="`weather [city_name],[country_code]`\n"
-                  "Example: `weather London, GB`\n"
+            value="`weather [city_name],[country_abbreviation]`\n"
+                  "Example: `weather Hamilton, NZ`\n"
                   "Displays current weather, temperatures and conditions.",
             inline=False
         )
