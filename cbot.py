@@ -7,134 +7,22 @@ import os
 import asyncio  # Import asyncio for background tasks
 import pytz  # Adding this for timezone handling
 from datetime import datetime  # Adding this for date and time handling
+from data_mappings import (
+    timezones_dict,
+    USER_TIMEZONE_MAPPING,
+    CURRENCY_NAMES,
+    COUNTRY_ABBREVIATIONS,
+    SUPPORTED_CURRENCIES
+)
+from readme_content import (
+    get_readme_embed,
+    get_weather_help_embed,
+    get_currency_help_embed,
+    get_time_help_embed,
+    get_currency_list_embed,
+    get_timezone_list_embed
+)
 
-# Supported currencies
-SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD', 'PHP', 'CNY', 'SGD', 'JPY']
-
-
-# Globally defining the timezones dictionary
-timezones_dict = {
-    'newzealand': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
-                   ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
-                   ('christchurch', 'chc', 'Pacific/Auckland', 'GMT+13'), 
-                   ('hamilton', 'hlz', 'Pacific/Auckland', 'GMT+13')],
-    'australia': [('sydney', 'syd', 'Australia/Sydney', 'GMT+11'), 
-                  ('melbourne', 'mel', 'Australia/Melbourne', 'GMT+11'), 
-                  ('brisbane', 'bne', 'Australia/Brisbane', 'GMT+10'), 
-                  ('perth', 'per', 'Australia/Perth', 'GMT+8'), 
-                  ('adelaide', 'adl', 'Australia/Adelaide', 'GMT+10.5'), 
-                  ('canberra', 'cbr', 'Australia/Sydney', 'GMT+11')],
-    'bangladesh': [('dhaka', 'dac', 'Asia/Dhaka', 'GMT+6')],
-    'malaysia': [('kuala lumpur', 'kl', 'Asia/Kuala_Lumpur', 'GMT+8')],
-    'mauritius': [('port louis', 'plu', 'Indian/Mauritius', 'GMT+4')],
-    'canada': [('toronto', 'yyz', 'America/Toronto', 'GMT-5'), 
-               ('vancouver', 'yvr', 'America/Vancouver', 'GMT-8'), 
-               ('montreal', 'yul', 'America/Toronto', 'GMT-5'), 
-               ('calgary', 'yyc', 'America/Edmonton', 'GMT-7'), 
-               ('ottawa', 'yow', 'America/Toronto', 'GMT-5')],
-    'unitedstates': [('new york', 'nyc', 'America/New_York', 'GMT-5'), 
-                     ('los angeles', 'lax', 'America/Los_Angeles', 'GMT-8'), 
-                     ('chicago', 'chi', 'America/Chicago', 'GMT-6'), 
-                     ('houston', 'hou', 'America/Chicago', 'GMT-6'), 
-                     ('phoenix', 'phx', 'America/Phoenix', 'GMT-7'), 
-                     ('seattle', 'sea', 'America/Los_Angeles', 'GMT-8'), 
-                     ('miami', 'mia', 'America/New_York', 'GMT-5')],
-    'england': [('london', 'lon', 'Europe/London', 'GMT+0'), 
-                ('manchester', 'man', 'Europe/London', 'GMT+0'), 
-                ('birmingham', 'bhx', 'Europe/London', 'GMT+0')],
-    'germany': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
-                ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
-                ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
-    'france': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
-               ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
-               ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
-    'italy': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
-              ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
-              ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
-    'denmark': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
-    'netherlands': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
-                    ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
-    'finland': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
-    'switzerland': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
-                    ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
-    'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
-    'philippines': [('manila', 'mnl', 'Asia/Manila', 'GMT+8')],
-    'singapore': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
-    'japan': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')]
-
-}
-
-# dictionary to store user ID, username, and city mappings
-# redacted for privacy, obviously 
-USER_TIMEZONE_MAPPING = {
-    340485392434200576: ("list", "hlz"),
-    744440440786255994: ("Bronoy", "dac"),
-    697901157472796826: ("Bush", "dac"),
-    439530718352375827: ("curlysandwich", "nyc"),
-    626150404333371422: ("gl1vch", "yyz"),
-    313373154812755969: ("Ibrahim", "kl"),
-    701305433633194018: ("ItznotHawk", "mel"),
-    709061499066515476: ("mehnaz", "nyc"),
-    719836306569429064: ("Moose", "dac"),
-    665657749207777351: ("Nay", "yyz"),
-    428113253726683137: ("Nowfel", "yyz"),
-    544753860858871831: ("ORANGMAN", "akl"),
-    392683322805059587: ("Relic", "dac"),
-    422394995266551808: ("Shamo_99", "lxm"),
-    692430092592218123: ("Skibby", "kl"),
-    368379417208029185: ("strangyyy", "dac"),
-    488021414759366668: ("tooshiewooshie", "dac"),
-    426522676581105676: ("Verse", "dac"),
-    487064547832627200: ("Alex", "plu"),
-    960839376563236894: ("Yashfi", "kl"),
-    219797015066968064: ("Zer0", "yyz"),
-    425981881138413568: ("ZiWei", "kl"),
-}
-
-# Mapping currency codes to (singular name, plural name) where anything but 1 returns plural (or so i hope)
-# Required for both conv and clist
-CURRENCY_NAMES = {
-    'USD': ('United States Dollar', 'United States Dollars'),
-    'NZD': ('New Zealand Dollar', 'New Zealand Dollars'),
-    'CAD': ('Canadian Dollar', 'Canadian Dollars'),
-    'BDT': ('Bangladeshi Taka', 'Bangladeshi Taka'),
-    'MYR': ('Malaysian Ringgit', 'Malaysian Ringgit'),
-    'MUR': ('Mauritian Rupee', 'Mauritian Rupees'),
-    'EUR': ('Euro', 'Euros'),
-    'EGP': ('Egyptian Pound', 'Egyptian Pounds'),
-    'SAR': ('Saudi Riyal', 'Saudi Riyals'),
-    'TRY': ('Turkish Lira', 'Turkish Lira'),
-    'GBP': ('British Pound', 'British Pounds'),
-    'AUD': ('Australian Dollar', 'Australian Dollars'),
-    'PHP': ('Philippine Peso', 'Philippine Pesos'),
-    'CNY': ('Chinese Yuan', 'Chinese Yuan'),
-    'SGD': ('Singapore Dollar', 'Singapore Dollars'),
-    'JPY': ('Japanese Yen', 'Japanese Yen')
-}
-
-
-# Abbreviation mapping for countries used in 'tlist' in on_message
-COUNTRY_ABBREVIATIONS = {
-    'newzealand': 'NZ',
-    'australia': 'AU',
-    'bangladesh': 'BD',
-    'malaysia': 'MY',
-    'mauritius': 'MU',
-    'canada': 'CA',
-    'unitedstates': 'US',
-    'england': 'UK',
-    'germany': 'GER',
-    'france': 'FR',
-    'italy': 'IT',
-    'denmark': 'DK',
-    'netherlands': 'NL',
-    'finland': 'FI',
-    'switzerland': 'CH',
-    'luxembourg' : 'LU',
-    'singapore' : 'SG',
-    'philippines' : 'PH',
-    'japan' : 'JP'
-}
 
 #web scrapper bs from chatgpt to fetch conversion info 
 def get_exchange_rate(from_currency, to_currency):
@@ -165,111 +53,7 @@ def get_exchange_rate(from_currency, to_currency):
 def get_current_time(location):
     # Dictionary of countries, abbreviations, cities and GMT offsets
     # Only way to support country abbreviations was to list them as separate elements (because I suck at python)
-    timezones_dict = {
-        'newzealand': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
-                       ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
-                       ('christchurch', 'chc', 'Pacific/Auckland', 'GMT+13'), 
-                       ('hamilton', 'hlz', 'Pacific/Auckland', 'GMT+13')],
-        'nz': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
-               ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
-               ('christchurch', 'chc', 'Pacific/Auckland', 'GMT+13'), 
-               ('hamilton', 'hlz', 'Pacific/Auckland', 'GMT+13')],
-        'australia': [('sydney', 'syd', 'Australia/Sydney', 'GMT+11'), 
-                      ('melbourne', 'mel', 'Australia/Melbourne', 'GMT+11'), 
-                      ('brisbane', 'bne', 'Australia/Brisbane', 'GMT+10'), 
-                      ('perth', 'per', 'Australia/Perth', 'GMT+8'), 
-                      ('adelaide', 'adl', 'Australia/Adelaide', 'GMT+10.5'), 
-                      ('canberra', 'cbr', 'Australia/Sydney', 'GMT+11')],
-        'au': [('sydney', 'syd', 'Australia/Sydney', 'GMT+11'), 
-               ('melbourne', 'mel', 'Australia/Melbourne', 'GMT+11'), 
-               ('brisbane', 'bne', 'Australia/Brisbane', 'GMT+10'), 
-               ('perth', 'per', 'Australia/Perth', 'GMT+8'), 
-               ('adelaide', 'adl', 'Australia/Adelaide', 'GMT+10.5'), 
-               ('canberra', 'cbr', 'Australia/Sydney', 'GMT+11')],
-        'bangladesh': [('dhaka', 'dac', 'Asia/Dhaka', 'GMT+6')],
-        'bd': [('dhaka', 'dac', 'Asia/Dhaka', 'GMT+6')],
-        'malaysia': [('kuala lumpur', 'kl', 'Asia/Kuala_Lumpur', 'GMT+8')],
-        'my': [('kuala lumpur', 'kl', 'Asia/Kuala_Lumpur', 'GMT+8')],
-        'mauritius': [('port louis', 'plu', 'Indian/Mauritius', 'GMT+4')],
-        'mu': [('port louis', 'plu', 'Indian/Mauritius', 'GMT+4')],
-        'canada': [('toronto', 'yyz', 'America/Toronto', 'GMT-5'), 
-                   ('vancouver', 'yvr', 'America/Vancouver', 'GMT-8'), 
-                   ('montreal', 'yul', 'America/Toronto', 'GMT-5'), 
-                   ('calgary', 'yyc', 'America/Edmonton', 'GMT-7'), 
-                   ('ottawa', 'yow', 'America/Toronto', 'GMT-5')],
-        'ca': [('toronto', 'yyz', 'America/Toronto', 'GMT-5'), 
-               ('vancouver', 'yvr', 'America/Vancouver', 'GMT-8'), 
-               ('montreal', 'yul', 'America/Toronto', 'GMT-5'), 
-               ('calgary', 'yyc', 'America/Edmonton', 'GMT-7'), 
-               ('ottawa', 'yow', 'America/Toronto', 'GMT-5')],
-        'unitedstates': [('new york', 'nyc', 'America/New_York', 'GMT-5'), 
-                         ('los angeles', 'lax', 'America/Los_Angeles', 'GMT-8'),
-                         ('chicago', 'chi', 'America/Chicago', 'GMT-6'),
-                         ('houston', 'hou', 'America/Chicago', 'GMT-6'),
-                         ('phoenix', 'phx', 'America/Phoenix', 'GMT-7'),
-                         ('seattle', 'sea', 'America/Los_Angeles', 'GMT-8'),
-                         ('miami', 'mia', 'America/New_York', 'GMT-5'),
-                         ('atlanta', 'atl', 'America/New_York', 'GMT-5'),
-                         ('dallas', 'dfw', 'America/Chicago', 'GMT-6')],
-        'us': [('new york', 'nyc', 'America/New_York', 'GMT-5'), 
-               ('los angeles', 'lax', 'America/Los_Angeles', 'GMT-8'),
-               ('chicago', 'chi', 'America/Chicago', 'GMT-6'),
-               ('houston', 'hou', 'America/Chicago', 'GMT-6'),
-               ('phoenix', 'phx', 'America/Phoenix', 'GMT-7'),
-               ('seattle', 'sea', 'America/Los_Angeles', 'GMT-8'),
-               ('miami', 'mia', 'America/New_York', 'GMT-5'),
-               ('atlanta', 'atl', 'America/New_York', 'GMT-5'),
-               ('dallas', 'dfw', 'America/Chicago', 'GMT-6')],
-        'england': [('london', 'lon', 'Europe/London', 'GMT+0'), 
-                    ('manchester', 'man', 'Europe/London', 'GMT+0'), 
-                    ('birmingham', 'bhx', 'Europe/London', 'GMT+0'), 
-                    ('liverpool', 'lpl', 'Europe/London', 'GMT+0')],
-        'uk': [('london', 'lon', 'Europe/London', 'GMT+0'), 
-               ('manchester', 'man', 'Europe/London', 'GMT+0'), 
-               ('birmingham', 'bhx', 'Europe/London', 'GMT+0'), 
-               ('liverpool', 'lpl', 'Europe/London', 'GMT+0')],
-        'germany': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
-                    ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
-                    ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
-        'ger': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
-                    ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
-                    ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
-        'france': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
-                   ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
-                   ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
-        'fr': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
-                   ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
-                   ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
-        'italy': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
-                  ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
-                  ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
-        'it': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
-                  ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
-                  ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
-        'denmark': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
-        'dk': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
-        'netherlands': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
-                        ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
-        'nl': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
-                        ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
-        'finland': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
-        'fi': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
-        'switzerland': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
-                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
-        'ch': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
-                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
-        'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
-        'lu': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
-        'philippines': [('manila', 'mnl', 'Asia/Manila', 'GMT+8'), 
-                ('davao', 'dav', 'Asia/Manila', 'GMT+8')],
-        'ph': [('manila', 'mnl', 'Asia/Manila', 'GMT+8'), 
-                ('davao', 'dav', 'Asia/Manila', 'GMT+8')],
-        'singapore': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
-        'sg': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
-        'japan': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')],
-        'jp': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')]
-
-    }
+ 
 
     # Normalizing input for case-insensitive matching because my friend alex is weird
     location = location.strip().casefold()
@@ -299,111 +83,6 @@ def get_current_time(location):
 # Updated `convert_time` function for accurate conversions, was broken because misalignment of full names
 def convert_time(time_str, from_location, to_location):
     # Uses the same `timezones_dict` as in get_current_time
-    timezones_dict = {
-        'newzealand': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
-                       ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
-                       ('christchurch', 'chc', 'Pacific/Auckland', 'GMT+13'), 
-                       ('hamilton', 'hlz', 'Pacific/Auckland', 'GMT+13')],
-        'nz': [('auckland', 'akl', 'Pacific/Auckland', 'GMT+13'), 
-               ('wellington', 'wlg', 'Pacific/Auckland', 'GMT+13'), 
-               ('christchurch', 'chc', 'Pacific/Auckland', 'GMT+13'), 
-               ('hamilton', 'hlz', 'Pacific/Auckland', 'GMT+13')],
-        'australia': [('sydney', 'syd', 'Australia/Sydney', 'GMT+11'), 
-                      ('melbourne', 'mel', 'Australia/Melbourne', 'GMT+11'), 
-                      ('brisbane', 'bne', 'Australia/Brisbane', 'GMT+10'), 
-                      ('perth', 'per', 'Australia/Perth', 'GMT+8'), 
-                      ('adelaide', 'adl', 'Australia/Adelaide', 'GMT+10.5'), 
-                      ('canberra', 'cbr', 'Australia/Sydney', 'GMT+11')],
-        'au': [('sydney', 'syd', 'Australia/Sydney', 'GMT+11'), 
-               ('melbourne', 'mel', 'Australia/Melbourne', 'GMT+11'), 
-               ('brisbane', 'bne', 'Australia/Brisbane', 'GMT+10'), 
-               ('perth', 'per', 'Australia/Perth', 'GMT+8'), 
-               ('adelaide', 'adl', 'Australia/Adelaide', 'GMT+10.5'), 
-               ('canberra', 'cbr', 'Australia/Sydney', 'GMT+11')],
-        'bangladesh': [('dhaka', 'dac', 'Asia/Dhaka', 'GMT+6')],
-        'bd': [('dhaka', 'dac', 'Asia/Dhaka', 'GMT+6')],
-        'malaysia': [('kuala lumpur', 'kl', 'Asia/Kuala_Lumpur', 'GMT+8')],
-        'my': [('kuala lumpur', 'kl', 'Asia/Kuala_Lumpur', 'GMT+8')],
-        'mauritius': [('port louis', 'plu', 'Indian/Mauritius', 'GMT+4')],
-        'mu': [('port louis', 'plu', 'Indian/Mauritius', 'GMT+4')],
-        'canada': [('toronto', 'yyz', 'America/Toronto', 'GMT-5'), 
-                   ('vancouver', 'yvr', 'America/Vancouver', 'GMT-8'), 
-                   ('montreal', 'yul', 'America/Toronto', 'GMT-5'), 
-                   ('calgary', 'yyc', 'America/Edmonton', 'GMT-7'), 
-                   ('ottawa', 'yow', 'America/Toronto', 'GMT-5')],
-        'ca': [('toronto', 'yyz', 'America/Toronto', 'GMT-5'), 
-               ('vancouver', 'yvr', 'America/Vancouver', 'GMT-8'), 
-               ('montreal', 'yul', 'America/Toronto', 'GMT-5'), 
-               ('calgary', 'yyc', 'America/Edmonton', 'GMT-7'), 
-               ('ottawa', 'yow', 'America/Toronto', 'GMT-5')],
-        'unitedstates': [('new york', 'nyc', 'America/New_York', 'GMT-5'), 
-                         ('los angeles', 'lax', 'America/Los_Angeles', 'GMT-8'), 
-                         ('chicago', 'chi', 'America/Chicago', 'GMT-6'), 
-                         ('houston', 'hou', 'America/Chicago', 'GMT-6'), 
-                         ('phoenix', 'phx', 'America/Phoenix', 'GMT-7'), 
-                         ('seattle', 'sea', 'America/Los_Angeles', 'GMT-8'), 
-                         ('miami', 'mia', 'America/New_York', 'GMT-5'),
-                         ('atlanta', 'atl', 'America/New_York', 'GMT-5'),
-                         ('dallas', 'dfw', 'America/Chicago', 'GMT-6')],
-        'us': [('new york', 'nyc', 'America/New_York', 'GMT-5'), 
-               ('los angeles', 'lax', 'America/Los_Angeles', 'GMT-8'), 
-               ('chicago', 'chi', 'America/Chicago', 'GMT-6'), 
-               ('houston', 'hou', 'America/Chicago', 'GMT-6'), 
-               ('phoenix', 'phx', 'America/Phoenix', 'GMT-7'), 
-               ('seattle', 'sea', 'America/Los_Angeles', 'GMT-8'), 
-               ('miami', 'mia', 'America/New_York', 'GMT-5'),
-               ('atlanta', 'atl', 'America/New_York', 'GMT-5'),
-               ('dallas', 'dfw', 'America/Chicago', 'GMT-6')],
-        'england': [('london', 'lon', 'Europe/London', 'GMT+0'), 
-                    ('manchester', 'man', 'Europe/London', 'GMT+0'), 
-                    ('birmingham', 'bhx', 'Europe/London', 'GMT+0'), 
-                    ('liverpool', 'lpl', 'Europe/London', 'GMT+0')],
-        'uk': [('london', 'lon', 'Europe/London', 'GMT+0'), 
-               ('manchester', 'man', 'Europe/London', 'GMT+0'), 
-               ('birmingham', 'bhx', 'Europe/London', 'GMT+0'), 
-               ('liverpool', 'lpl', 'Europe/London', 'GMT+0')],
-        'germany': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
-                    ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
-                    ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
-        'ger': [('berlin', 'ber', 'Europe/Berlin', 'GMT+1'), 
-                    ('munich', 'muc', 'Europe/Berlin', 'GMT+1'), 
-                    ('frankfurt', 'fra', 'Europe/Berlin', 'GMT+1')],
-        'france': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
-                   ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
-                   ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
-        'fr': [('paris', 'par', 'Europe/Paris', 'GMT+1'), 
-                   ('lyon', 'lys', 'Europe/Paris', 'GMT+1'), 
-                   ('marseille', 'mrs', 'Europe/Paris', 'GMT+1')],
-        'italy': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
-                  ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
-                  ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
-        'it': [('rome', 'rom', 'Europe/Rome', 'GMT+1'), 
-                  ('milan', 'mil', 'Europe/Rome', 'GMT+1'), 
-                  ('naples', 'nap', 'Europe/Rome', 'GMT+1')],
-        'netherlands': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
-                        ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
-        'nl': [('amsterdam', 'ams', 'Europe/Amsterdam', 'GMT+1'), 
-                        ('rotterdam', 'rtm', 'Europe/Amsterdam', 'GMT+1')],
-        'denmark': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
-        'dk': [('copenhagen', 'cph', 'Europe/Copenhagen', 'GMT+1')],
-        'finland': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
-        'fi': [('helsinki', 'hel', 'Europe/Helsinki', 'GMT+2')],
-        'switzerland': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
-                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
-        'ch': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
-                        ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
-        'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
-        'lu': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
-        'philippines': [('manila', 'mnl', 'Asia/Manila', 'GMT+8'), 
-                ('davao', 'dav', 'Asia/Manila', 'GMT+8')],
-        'ph': [('manila', 'mnl', 'Asia/Manila', 'GMT+8'), 
-                ('davao', 'dav', 'Asia/Manila', 'GMT+8')],
-        'singapore': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
-        'sg': [('singapore', 'sin', 'Asia/Singapore', 'GMT+8')],
-        'japan': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')],
-        'jp': [('tokyo', 'tk', 'Asia/Tokyo', 'GMT+9')]
-        
-    }
 
     # Normalizing inputs for case-insensitive matching
     from_location = from_location.strip().casefold()
@@ -645,165 +324,8 @@ async def on_message(message):
 
     #Large read-me alike. Meant to have complete instructions no one will ever read.
     elif message.content.lower().startswith(('ww -readme', 'worldwise -readme', 'ww -rm')):
-        embed = discord.Embed(
-        title="Worldwise Bot Full Readme",
-        description="Welcome to the full readme! This is your go-to guide for understanding and using all the features of the Worldwise Bot.\n"
-                    "This is the result of over-engineering currency and time conversions for the mild convenience of not having to swtich tabs.\n\n"
-                    "All commands are case-*in*sensitive.",
-        color=discord.Color.dark_teal()  # Set color to whatever eh
-    )
-
-    # Currency Conversion Help
-        embed.add_field(
-        name="💰 Currency Conversion Help",
-        value="Use the currency conversion features to convert between different currencies with ease. "
-              "Here's how you can use them:",
-        inline=False
-    )
-
-        embed.add_field(
-        name="1. Basic Currency Conversion (conv or convert)",
-        value="`conv [amount] [from_currency] to [target_currency]`\n"
-              "Example 1: `conv 100 USD to CAD`\n"
-              "Example 2: `convert 50 EUR to USD`\n\n"
-              "This command provides a short response with the conversion rate.\n\n",
-        inline=False
-    )
-
-        embed.add_field(
-        name="2. Detailed Currency Conversion (convf or convertfull)",
-        value="`convf [amount] [from_currency] to [target_currency]`\n"
-              "Example 1: `convf 100 USD to CAD`\n"
-              "Example 2: `convertfull 50 EUR to USD`\n\n"
-              "This command gives you detailed information, including:\n"
-              "- Conversion rate\n"
-              "- 30-day high, low, average, and change\n"
-              "- Source link for the data\n\n",
-        inline=False
-    )
-
-        embed.add_field(
-        name="3. Currency List (clist)",
-        value="Type `clist` to view all supported currencies.\n"
-              "The list shows full names and abbreviations, so you can use either.",
-        inline=False
-    )
-
-    # Timezone Help
-        embed.add_field(
-        name="🕰️ Timezone Help",
-        value="Use the time-related features to check the current time or convert time between different locations.",
-        inline=False
-    )
-
-        embed.add_field(
-        name="1. Current Time (time)",
-        value="`time <location>` - Provides the current time for the specified location.\n"
-              "Examples:\n"
-              "- `time KL` (Kuala Lumpur)\n"
-              "- `time MY` (Malaysia)\n"
-              "- `time yyz` (Toronto)\n"
-              "- `time newzealand`\n"
-              "- `time Malaysia`\n\n"
-              "If the country name is two words, like United States, delete the space in-between to use it. i.e. unitedstates or newzealand.\n"
-              "You can use full city and country names or abbreviations from all the supported regions found in `tlist`.",
-        inline=False
-    )
-
-        embed.add_field(
-        name="2. User Time (time @username)",
-        value="`time @username` - Shows the current time for the mentioned user, based on their configured city.\n"
-              "Example: `time @Zer0`.\n\n"
-              "This works when you directly mention or @ping the user. If a user has their city allocated to them, the bot will show the time accordingly.\n"
-              "Currently, users can't configure their own locations with a command. Ask <@340485392434200576> to change/add your region for support.",
-              
-        inline=False
-    )
-
-        embed.add_field(
-        name="3. Time Zone Conversion (timec or timeconvert)",
-        value="`timec [time] [from_location] to [to_location]`\n"
-              "Example 1: `timec 6pm KL to Australia`\n"
-              "Example 2: `timec 5pm yyz to US`\n"
-              "Example 3: `timec 1am dac to plu`\n"
-              "Example 4: `timec 2am Hamilton to AU`\n\n"
-              "You can use either full location names or abbreviations. The bot will show you the time converted to the destination time zone.\n\n"
-              "If a country has multiple time zones, all of them will be listed for that country.\n\n"
-              "**Supported time formats:**\n"
-              "- 12-hour format: `4:00pm`, `4pm`\n"
-              "- 24-hour format: `16:00`, `1600`\n"
-              "- Military time: `1600`\n"
-              "- Both minutes and hour are supported: `4:23pm` or `1623`",
-        inline=False
-    )
-
-        embed.add_field(
-        name="4. User-to-User Time Conversion (timec)",
-        value="`timec [time] @from_user to @to_user`\n"
-              "Example: `timec 2pm @Zer0 to @strangyyy`\n\n"
-              "This command converts time from one user's region to another's based on their allocated region.",
-        inline=False
-    )
-
-        embed.add_field(
-        name="5. Supported Timezones (tlist)",
-        value="Type `tlist` to view all supported regions and cities with their corresponding timezone codes.\n"
-              "The list shows both full city names and abbreviations.\n\n"
-              "The abbreviations in this list will work accurately with all time-related commands.\n",
-        inline=False
-    )
-    #   weather help
-        embed.add_field(
-        name="🌩️ Weather Help",
-        value="Fetching weather information for any location worldwide using OpenWeather.",
-        inline=False
-    )
-        embed.add_field(
-        name="1. Weather today (weather)",
-        value="`weather <city>,<country_abbreviation>` - Provides weather information for the specified location.\n"
-              "Examples:\n"
-              "- `weather Hamilton, NZ` (New Zealand)\n"
-              "- `weather Malaysia` \n"
-              "Abbreviation and region codes work too such as `weather NZ` but returns highly inaccurate responses. \n"
-              "Best to specify city followed by country abbreviation.",
-        inline=False
-    
-    )
-
-    # Server Info
-        embed.add_field(
-        name="💻 Server Info (svinfo or serverinfo)",
-        value="Type `svinfo` or `serverinfo` to get information about the server where the bot is active.\n"
-              "This includes:\n"
-              "- Server ID\n"
-              "- Owner\n"
-              "- Member count\n"
-              "- Boost count\n"
-              "- Text channels\n"
-              "- Voice channels\n"
-              "- Server creation date",
-        inline=False
-    )
-
-    # Worldwise Bot Guilds Info
-        embed.add_field(
-        name="🌍 Server List (ww -guilds or worldwise -guilds)",
-        value="Type `ww -guilds` or `worldwise -guilds` to see all the servers the bot is in (inclduing number of users in listed servers).\n"
-              "**Admin only.**\n",
-        inline=False
-    )
-
-    # Final Notes and Contact Info
-        embed.add_field(
-        name="For Help or Additions",
-        value="If you need further assistance or would like to suggest an addition to the bot, feel free to mention me: <@340485392434200576>.\n"
-              "You can also check the full source code and more info at: [Worldwise Bot GitHub](https://github.com/list0ps/Worldwise).",
-        inline=False
-    )
-
-    # Send the embed
+        embed = get_readme_embed()  # Get the README embed
         await message.channel.send(embed=embed)
-
 
     # Handle 'convert' or variations like 'Convert' and 'conv' (short response)
     if message.content.lower().startswith('convert ') or message.content.lower().startswith('conv '):
@@ -813,54 +335,13 @@ async def on_message(message):
     elif message.content.lower().startswith('convertfull') or message.content.lower().startswith('convf'):
         await handle_conversion(message, full_response=True)
 
-    if message.content.lower().startswith('whelp'):
-        embed = discord.Embed(
-            title="Weather Information Help",
-            description="Learn how to use the weather command.",
-            color=discord.Color.blue()
-        )
-        embed.add_field(
-            name="Usage",
-            value="`weather [city_name],[country_abbreviation]`\n"
-                  "Example: `weather Hamilton, NZ`\n"
-                  "Displays current weather, temperatures and conditions.",
-            inline=False
-        )
-        embed.add_field(
-            name="Note",
-            value="You can use this command in both server channels and private messages!",
-            inline=False
-        )
+    elif message.content.lower().startswith('whelp'):
+        embed = get_weather_help_embed()  # Get the weather help embed
         await message.channel.send(embed=embed)
-        return
     
     # Handle 'chelp' for showing syntax and examples
     elif message.content.lower().startswith('chelp'):
-        embed = discord.Embed(
-            title="Currency Conversion Help",
-            description="Learn how to use the currency conversion commands effectively.",
-            color=discord.Color.dark_green()  # Set the embed color to green
-        )
-        embed.add_field(
-            name="1. Basic Conversion",
-            value="`conv [amount] [from_currency] to [target_currency]`\n"
-                  "Example: `conv 100 USD to CAD`\n"
-                  "Provides a short response with the conversion rate.",
-            inline=False
-        )
-        embed.add_field(
-            name="2. Full Conversion with Details",
-            value="`convf [amount] [from_currency] to [target_currency]`\n"
-                  "Example: `convf 100 USD to CAD`\n"
-                  "Provides a detailed response including 30-day high, low, average, change, and source link.",
-            inline=False
-        )
-        embed.add_field(
-            name="Additional Commands",
-            value="Type `clist` to view all supported currencies."
-            "You can make these conversions __privately__ too! **Slide into my DMs ;)**",
-            inline=False
-        )
+        embed = get_currency_help_embed()  # Get the currency help embed
         await message.channel.send(embed=embed)
 
 # Adding this to the on_message handler to handle the `time` command
@@ -869,76 +350,19 @@ async def on_message(message):
 
     # Handle 'clist' for listing supported currencies
     elif message.content.lower().startswith('clist'):
-        currency_list = "\n".join(
-            f"{i+1}. {CURRENCY_NAMES[c][1]} ({c})" for i, c in enumerate(SUPPORTED_CURRENCIES)
-        )
-        embed = discord.Embed(
-            title="Supported Currencies",
-            description="A complete list of supported currencies for the converter.",
-            color=discord.Color.dark_green()  # Set the embed color 
-        )
-        embed.add_field(
-            name="Currency List",
-            value=currency_list,
-            inline=False
-        )
-        embed.add_field(
-            name="How to Use",
-            value="`conv [amount] [from_currency] to [target_currency]`\n"
-                  "Example: `conv 100 USD to CAD`\n\n"
-                  "`convf` returns more information with source.\n",
-            inline=False
-        )
-
-        embed.add_field(
-            name="Want to Add a Currency?",
-            value="Contact <@340485392434200576>.",
-            inline=False
-        )
-
+        embed = get_currency_list_embed(SUPPORTED_CURRENCIES, CURRENCY_NAMES)  # Get the currency list embed
         await message.channel.send(embed=embed)
 
 
     # Handle 'thelp' for listing supported timezones
     elif message.content.lower().startswith('thelp'):
-        embed = discord.Embed(
-            title="Time Zone Help",
-            description="Only works with supported regions!",
-            color=discord.Color.dark_blue()  # Set the embed color to dark blue
-        )
-        embed.add_field(
-            name="1. Current Time",
-            value="`time <location>` - Tells you the current time for the region.\n"
-                  "Example: `time KL`, `time MY`, or `time Malaysia`.\n",
-            inline=False
-        )
-        embed.add_field(
-            name="2. User Time",
-            value="`time @username` - Tells you what time it is for the user you mention.\n"
-                  "Example: `time @Zer0`.",
-            inline=False
-        )
-        embed.add_field(
-            name="3. Time Zone Conversion",
-            value="`timec` - Converts time from one region to another.\n"
-                  "Example: `timec 6pm KL to Australia`, or `timec 2pm Hamilton to AU`.\n"
-                  "If a country has multiple time zones, all zones will be listed.\n",
-            inline=False
-        )
-        embed.add_field(
-            name="4. User-to-User Time Conversion",
-            value="`timec` - Converts time from one user's region to another's.\n"
-                  "Example: `timec 2pm @Zer0 to @strangyyy`.",
-            inline=False
-        )
-        embed.add_field(
-            name="What's supported?",
-            value="Type `tlist` to view all supported regions with codes for easy typing.\n"
-                    "You can make these conversions __privately__ too! **Slide into my DMs ;)**",
-            inline=False
-        )
+        embed = get_time_help_embed()  # Get the time help embed
         await message.channel.send(embed=embed)
-
+    
+    # Handle 'tlist' command
+    elif message.content.lower().startswith('tlist'):
+        embed = get_timezone_list_embed(timezones_dict, COUNTRY_ABBREVIATIONS)
+        await message.channel.send(embed=embed)
 
 
 # Handle 'time' command
@@ -957,37 +381,6 @@ async def on_message(message):
             )
 
     
-    
-    elif message.content.lower().startswith('tlist'):
-        embed = discord.Embed(
-            title="Supported Timezones",
-            description="A list of countries and their cities you can convert between. Yes you can use abbreviations.",
-            color=discord.Color.dark_blue()  # Set the embed color to dark blue
-        )
-
-        country_number = 1  # Start numbering countries
-
-        for country, cities in sorted(timezones_dict.items()):
-            # Get abbreviation from the dictionary, default to blank if not found
-            abbreviation = COUNTRY_ABBREVIATIONS.get(country, "")
-            country_heading = f"{country_number}. {country.title()} ({abbreviation})" if abbreviation else f"{country_number}. {country.title()}"
-
-            # Cities listed in-line, separated by commas
-            cities_list = ", ".join([f"{city.title()} ({code.upper()})" for city, code, _, _ in sorted(cities)])
-
-            # Add each country and its cities as a new field
-            embed.add_field(name=country_heading, value=cities_list, inline=False)
-
-            country_number += 1  # Increment the country number for the next iteration
-
-        # Add the message about adding cities
-        embed.add_field(
-            name="Want to Add a City?",
-            value="Contact <@340485392434200576>.",
-            inline=False
-        )
-
-        await message.channel.send(embed=embed)
 
     
 # Handle 'timec' command
