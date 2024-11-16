@@ -148,6 +148,20 @@ def get_readme_embed():
         inline=False
     )
 
+    # Members List
+    embed.add_field(
+        name="👥 Members List (mlist)",
+        value="Type `mlist` to see all the members and when they joined the server.\n",
+        inline=False
+    )
+
+    # Account Creation Dates
+    embed.add_field(
+        name="👥 Account Creation Dates (jdlist)",
+        value="Type `jdlist` to see all the members in the server and their account creation dates.\n",
+        inline=False
+    )
+
     # Final Notes and Contact Info
     embed.add_field(
         name="For Help or Additions",
