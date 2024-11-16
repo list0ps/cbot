@@ -239,9 +239,9 @@ async def on_message(message):
     # Check if the message content is the trigger for listing join dates
     if message.content.lower() == 'jdlist':
         # Check if the user has permission
-        if message.author.id != 340485392434200576:
-            await message.channel.send("You do not have permission to use this command.")
-            return
+        #if message.author.id != 340485392434200576:
+            #await message.channel.send("You do not have permission to use this command.")
+            #return
 
         guild = message.guild  # Get the guild (server) where the message was sent
         
