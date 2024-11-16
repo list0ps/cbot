@@ -1,4 +1,5 @@
 import discord
+import aiohttp
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -514,6 +515,60 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+    
+    # weather stuff
+    if message.content.lower().startswith('weather'):
+        # Get the location from the message (everything after 'weather')
+        location = message.content[7:].strip()  # Remove 'weather' and leading/trailing spaces
+        
+        if not location:
+            await message.channel.send("Please provide a location. Example: weather London,UK")
+            return
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                # Get coordinates for location
+                geocoding_url = f"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={WEATHER_API_KEY}"
+                async with session.get(geocoding_url) as response:
+                    if response.status != 200:
+                        await message.channel.send("Sorry, I couldn't find that location.")
+                        return
+                    
+                    geocode_data = await response.json()
+                    if not geocode_data:
+                        await message.channel.send("Sorry, I couldn't find that location.")
+                        return
+
+                    lat = geocode_data[0]['lat']
+                    lon = geocode_data[0]['lon']
+                    location_name = geocode_data[0]['name']
+                    country = geocode_data[0]['country']
+
+                # Get weather data
+                weather_url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={WEATHER_API_KEY}&units=metric"
+                async with session.get(weather_url) as response:
+                    if response.status != 200:
+                        await message.channel.send("Sorry, I couldn't fetch the weather data.")
+                        return
+                    
+                    weather_data = await response.json()
+
+            # Extract weather information
+            temperature = round(weather_data['main']['temp'])
+            condition = weather_data['weather'][0]['description']
+            temp_max = round(weather_data['main']['temp_max'])
+            temp_min = round(weather_data['main']['temp_min'])
+
+            # Send the weather message
+            weather_message = (
+                f"It's **{condition}** and **{temperature} °C** in **{location_name}**, {country} today. "
+                f"Expect highs of {temp_max} °C and lows of {temp_min} °C."
+            )
+            
+            await message.channel.send(weather_message)
+
+        except Exception as e:
+            await message.channel.send(f"An error occurred while fetching weather data: {str(e)}")
 
   # DM forwarding, sends any content (text or attachments) sent to bot's DM - to specified channel  
   # Check if the message is in a DM (Direct Message)
@@ -697,6 +752,23 @@ async def on_message(message):
               "The abbreviations in this list will work accurately with all time-related commands.\n",
         inline=False
     )
+    #   weather help
+        embed.add_field(
+        name="🌩️ Weather Help",
+        value="Fetching weather information for any location worldwide using OpenWeather.",
+        inline=False
+    )
+        embed.add_field(
+        name="1. Weather today (weather)",
+        value="`weather <city>,<country_code>` - Provides weather information for the specified location.\n"
+              "Examples:\n"
+              "- `weather Hamilton, NZ` (New Zealand)\n"
+              "- `weather Malaysia` \n"
+              "Abbreviation and region codes work too such as `weather NZ` but returns highly inaccurate responses. \n"
+              "Best to specify city followed by country code.",
+        inline=False
+    
+    )
 
     # Server Info
         embed.add_field(
@@ -741,6 +813,27 @@ async def on_message(message):
     elif message.content.lower().startswith('convertfull') or message.content.lower().startswith('convf'):
         await handle_conversion(message, full_response=True)
 
+    if message.content.lower().startswith('whelp'):
+        embed = discord.Embed(
+            title="Weather Information Help",
+            description="Learn how to use the weather command.",
+            color=discord.Color.blue()
+        )
+        embed.add_field(
+            name="Usage",
+            value="`weather [city_name],[country_code]`\n"
+                  "Example: `weather London, GB`\n"
+                  "Displays current weather, temperatures and conditions.",
+            inline=False
+        )
+        embed.add_field(
+            name="Note",
+            value="You can use this command in both server channels and private messages!",
+            inline=False
+        )
+        await message.channel.send(embed=embed)
+        return
+    
     # Handle 'chelp' for showing syntax and examples
     elif message.content.lower().startswith('chelp'):
         embed = discord.Embed(
@@ -1087,5 +1180,7 @@ async def send_periodic_message():
             await channel.send("This is a periodic message sent every 28 minutes. Prevents dynos sleeping on heroku.")
         await asyncio.sleep(28 * 60)  # Wait 28 minutes
 
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+
 client.run(DISCORD_TOKEN)
