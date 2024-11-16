@@ -166,6 +166,7 @@ def format_time(time_obj, format_12hr=True):
 # Also this was introduced in 2023 most likely, wasn't required for discord.py
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 client = discord.Client(intents=intents)
 
 # Placeholder for error logging channel and startup message channel
@@ -195,6 +196,83 @@ async def on_message(message):
     if message.author == client.user:
         return
     
+
+    # memlist command
+    if message.content.lower() == 'mlist':
+        # Check if the user has permission
+        #if message.author.id != 340485392434200576:
+        #    await message.channel.send("You do not have permission to use this command.")
+        #    return
+
+        guild = message.guild  # Get the guild (server) where the message was sent
+        
+        # Create a list to hold member names and join dates
+        member_list = []
+        
+        # Fetch all members using an async for loop
+        async for member in guild.fetch_members():
+            # Use nickname if available, otherwise use username
+            nickname = member.nick if member.nick else member.name
+            
+            # Format the join date with shortened month names
+            join_date = member.joined_at.strftime('%b %d, %Y') if member.joined_at else 'N/A'
+            member_list.append((nickname, join_date, member.joined_at))  # Store join date for sorting
+
+        # Sort members by join date (oldest first)
+        member_list.sort(key=lambda x: x[2])  # Sort by the actual join date
+
+        # Create a formatted string with bullet numbers
+        formatted_member_list = "\n".join(f"{i + 1}. {nickname} [{join_date}]" for i, (nickname, join_date, _) in enumerate(member_list))
+
+        # Create an embed for the response with dark red color
+        embed = discord.Embed(
+            title="Members in this server",
+            description="Member | When they joined the server\n" + formatted_member_list,  # Added clarification
+            color=discord.Color.dark_red()  # Change color to dark red
+        )
+
+        # Send the embed in the channel
+        await message.channel.send(embed=embed)
+
+    
+
+    # Check if the message content is the trigger for listing join dates
+    if message.content.lower() == 'jdlist':
+        # Check if the user has permission
+        if message.author.id != 340485392434200576:
+            await message.channel.send("You do not have permission to use this command.")
+            return
+
+        guild = message.guild  # Get the guild (server) where the message was sent
+        
+        # Create a list to hold member names and account creation dates
+        account_list = []
+        
+        # Fetch all members using an async for loop
+        async for member in guild.fetch_members():
+            # Use nickname if available, otherwise use username
+            nickname = member.nick if member.nick else member.name
+            
+            # Format the account creation date with shortened month names
+            account_creation_date = member.created_at.strftime('%b %d, %Y') if member.created_at else 'N/A'
+            account_list.append((nickname, account_creation_date, member.created_at))  # Store nickname, account creation date, and actual date
+
+        # Sort members by account creation date (oldest first)
+        account_list.sort(key=lambda x: x[2])  # Sort by the actual account creation date
+
+        # Create a formatted string with bullet numbers
+        formatted_account_list = "\n".join(f"{i + 1}. {nickname} [{account_creation_date}]" for i, (nickname, account_creation_date, _) in enumerate(account_list))
+
+        # Create an embed for the response with dark red color
+        embed = discord.Embed(
+            title="Members' Account Creation Dates",
+            description=formatted_account_list,
+            color=discord.Color.dark_red()  # Change color to dark red
+        )
+
+        # Send the embed in the channel
+        await message.channel.send(embed=embed)
+
     # weather stuff
     if message.content.lower().startswith('weather'):
         # Get the location from the message (everything after 'weather')
