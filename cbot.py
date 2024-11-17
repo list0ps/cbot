@@ -237,6 +237,32 @@ async def on_message(message):
     if message.author == client.user:
         return
     
+    # DM forwarding, sends any content (text or attachments) sent to bot's DM - to specified channel  
+  # Check if the message is in a DM (Direct Message)
+    if isinstance(message.channel, discord.DMChannel):
+        target_channel = client.get_channel(1306617117528952955)  # Replace with the target channel ID
+
+        # Check if the target channel exists
+        if target_channel:
+            # Send the content of the DM (if there's any text)
+            embed = discord.Embed(
+                title="New DM Received",
+                description=message.content if message.content else "[No Text]",
+                color=discord.Color.dark_teal()  # Use a green color for DM notifications
+            )
+            embed.add_field(name="From", value=f"{message.author} (ID: {message.author.id})", inline=False)
+            
+            # Forward the message embed to the target channel
+            await target_channel.send(embed=embed)
+
+            # Forward any attachments (images, files)
+            if message.attachments:
+                for attachment in message.attachments:
+                    await target_channel.send(f"Attachment: {attachment.url}")
+        else:
+            print("Target channel not found.")
+
+
     if message.content.lower().startswith("whelp"):
         current_page = 0
         total_pages = len(sections)
