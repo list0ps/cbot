@@ -151,13 +151,13 @@ sections = [
         "fields": []
     },
     {
-        "title": "👥 Members List (mlist)",
+        "title": "👥 Members List",
         "description": "Type `mlist` to see all the members and when they joined the server.",
         "color": discord.Color.dark_teal(),
         "fields": []
     },
     {
-        "title": "👥 Account Creation Dates (jdlist)",
+        "title": "👥 Account Creation Dates",
         "description": "Type `jdlist` to see all the members in the server and their account creation dates.",
         "color": discord.Color.dark_teal(),
         "fields": []
