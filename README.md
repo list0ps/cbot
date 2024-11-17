@@ -1,78 +1,51 @@
-# Time & Currency Conversion Discord Bot
 
-This is a Discord bot designed to provide time look-ups and time and currency conversions. Made for my discord server with an exceedingly international group of friends.
+# Worldwise Discord Bot
 
-## Features
-- **Time Zone Conversion:** Convert time from one location to another, including support for multiple time zones within a country.
-- **Time Lookup:** Simply gives you the time of a supported location you ask for.
-- **Currency Conversion:** Convert amounts between various currencies and get additional information like historical data and exchange rates.
-- **Periodic Messages:** Prevent Heroku dynos from going to sleep by sending periodic messages.
-- **User-Friendly Commands:** easy-to-use commands for conversion and time retrieval.
+This bot was designed to be used in my personal discord server with an exceedingly international group of friends. It's built entirely using python and the discord.py library, with a tinge of web scraping and API integration (also some json architecture).
+
+Though most of the bot's functionality is easily attainable through a quick google search, it served the purpose of my hyperfixiative means of stress relief over a week long project. 
 
 
 
-## Command List
-**All commands are case in-sensitive.**
-| Command                                                              | Description                                                                 | Example                                      |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------|----------------------------------------------|
-| `time <location>`                                                     | Returns the current time for the specified city. If a country is used in `location`, returns cities in that country. | `time Kuala Lumpur`, `time MY`, `time Malaysia` |
-| `convt <time> <origin location> to <destination location>`             | Converts time from one location to another. Returns cities in countries if country is mentioned. | `convt 6pm KL to Australia`, `convt 9am NYC to London` |
-| `conv <amount> <from_currency> to <target_currency>`                   | Converts a given amount from one currency to another. | `conv 100 USD to CAD`, `conv 100 EUR to GBP` |
-| `convf <amount> <from_currency> to <target_currency>`                  | Returns conversion + additional info (high, low, average, change). | `convf 100 USD to CAD`, `convf 100 EUR to GBP` |
-| `chelp`                                                              | Provides instructions and syntax  on currency-related commands.                                      | `chelp`                                    |
-| `clist`                                                               | Lists all supported currencies and short codes like "USD".                              | `clist`                                     |
-| `cthelp`                                                              | Provides time-related syntax and instructions.         | `ctlist`                                    |
-| `ctlist`                                                              | Lists all supported cities and countries for time-related commands.         | `ctlist`        
+## Commands Overview
 
-## How the Bot Works
+### Functional Commands
 
-This bot provides several utilities, including currency conversion and time zone conversion, all through Discord messages. 
+| Command                          | Description                                                                                     |
+|----------------------------------|-------------------------------------------------------------------------------------------------|
+| `conv [amount] [from_currency] to [target_currency]` | Converts a specified amount from one currency to another.                                      |
+| `convf [amount] [from_currency] to [target_currency]`| Provides detailed currency conversion information, including rates and historical data.        |
+| `clist`                          | Lists all supported currencies along with their full names and abbreviations.                 |
+| `time <location>`               | Displays the current time for the specified location.                                          |
+| `time @username`                | Shows the current time for the mentioned user based on their configured city.                 |
+| `timec [time] [from_location] to [to_location]`     | Converts time from one location to another.                                                   |
+| `timec [time] @from_user to @to_user`               | Converts time from one user's region to another's based on their allocated region.            |
+| `weather <city>,<country_abbreviation>`              | Provides current weather information for the specified location.                               |
+| `weather @username`             | Fetches weather information for the mentioned user based on their allocated region.           |
+| `translate <text>`              | Translates the provided text to English.                                                      |
 
-- The bot is built using the `discord.py` library, which allows it to interact with Discord's API.
-- Time zone information is stored in a dictionary (`timezones_dict`) that maps countries/cities to their respective time zones, supporting case-insensitive lookups for location names.
-- Currency data is fetched through a web scrapping method, ensuring that the latest exchange rates are always available. The bot supports a wide range of currencies, and detailed exchange rate information (high, low, average, etc.) is retrieved from historical data.
-- The bot also includes error handling to ensure smooth user interactions and provides feedback if an unsupported currency or time zone is used.
+### Help and Server Commands
 
-## Functions in the Code
+| Command                          | Description                                                                                     |
+|----------------------------------|-------------------------------------------------------------------------------------------------|
+| `svinfo` or `serverinfo`       | Displays information about the server where the bot is active.                                |
+| `ww -guilds` or `worldwise -guilds` | Lists all servers the bot is in, including the number of users (Admin only).                |
+| `mlist`                          | Shows all members in the server and when they joined.                                        |
+| `jdlist`                         | Lists all members in the server along with their account creation dates.                      |
+| `tlist`                          | Lists all supported time zones and cities with their corresponding codes.                     |
 
-The bot's functionality is divided into several core functions.
+## How the Worldwise Bot Works
 
-### 1. `convert_time(time_str, from_location, to_location)`
-This function is responsible for converting a given time from one time zone to another. It accepts three parameters:
-- `time_str`: The time to convert, given in a 12-hour format (e.g., "6pm").
-- `from_location`: The origin location (city or country) of the time.
-- `to_location`: The target location to convert the time to.
+The Worldwise Bot operates by integrating various APIs and data sources to provide real-time information on currency conversion, time zones, and weather conditions. Here's a brief overview of how each function is achieved:
 
-The function uses a dictionary (`timezones_dict`) to look up the time zone for both the origin and destination. It then converts the input time to the correct time zone and returns the result, formatted in a human-readable manner. If multiple time zones exist for a location, the function handles those as well.
+### Currency Conversion
+The bot utilizes web scraping techniques to fetch the latest exchange rates from reliable financial websites. When a user requests a currency conversion, the bot retrieves the current rate and performs the necessary calculations to provide accurate conversion results. Additionally, it offers detailed information such as historical data, high and low rates over the past 30 days, and links to the source of the data.
 
-### 2. `handle_conversion(message, full_response)`
-This function handles the `conv` and `convf` commands for currency conversion. It is invoked when a user requests a conversion using either `conv` for a quick response or `convf` for a full response. It works as follows:
-- The function splits the message to extract the amount, source currency, and target currency.
-- It validates the input currencies against a predefined list (`SUPPORTED_CURRENCIES`).
-- If valid, it retrieves the exchange rate and performs the conversion. The `full_response` flag determines whether additional details (e.g., high/low/average data for the last 30 days) are included in the response.
-- If the input is invalid or the currency data cannot be found, it sends an error message to the user.
+### Time Zone Management
+To manage time zones effectively, the bot maintains a comprehensive mapping of cities, countries, and their corresponding time zones. When a user queries the current time for a specific location or requests a time conversion between two locations, the bot uses this mapping to calculate and return the correct time, taking into account any differences in time zones.
 
-### 3. `get_exchange_rate(from_currency, to_currency)`
-This function retrieves the current exchange rate between two currencies. It uses a web-scrapping method (maps to HTML div classes) to fetch the exchange rate and related historical data (such as 30-day high, low, average, and percentage change). This data is then returned to the `handle_conversion` function for further processing and display.
+### Weather Information
+For weather updates, the bot leverages the OpenWeather API to fetch current weather data based on user-provided locations. Users can inquire about the weather for specific cities or even for other users based on their registered locations. The bot processes the API response to extract relevant weather details, such as temperature, conditions, and forecasts, and presents this information in a user-friendly format.
 
-### 4. `send_error(error_message, original_message)`
-Error logs. 
-
-### 5. `send_periodic_message()`
-This function is a background task that periodically sends a message to a specific channel. It runs every 28 minutes, preventing the Heroku dyno from going to sleep. This ensures the bot remains active and responsive.
-
-### 6. `on_ready()`
-This is a built-in Discord event handler that is triggered when the bot successfully logs in and is ready to start responding to commands. In this function:
-- The bot sends a startup message to a designated channel, notifying users that the bot is now online and functional.
-- It also starts the periodic message task to keep the bot alive on platforms like Heroku.
-
-### 7. `on_message(message)`
-This is another built-in event handler that listens for messages sent in channels where the bot has access. Based on the message content, it determines which command to process. The main responsibilities of this function are:
-- Responding to `conv` and `convf` commands by invoking the `handle_conversion` function.
-- Responding to `time` and `convt` commands by invoking the `convert_time` function for time zone conversions.
-- Providing help messages for users with the `chelp` and `cthelp` commands, explaining how to use the bot.
-- Displaying a list of supported currencies and time zones when the user types `clist` or `ctlist`.
-
-These functions work together to create a seamless user experience by converting currencies, times, and providing additional information on request.
-
-
+### Translation Services
+The translation functionality is implemented using web scraping techniques to access Google Translate. When a user issues the `translate <text>` command, the bot constructs a URL for the translation request and sends an HTTP GET request with appropriate headers to mimic a browser request. The response is parsed to extract the translated text, which is then sent back to the user. This process is encapsulated in a try-except block to handle potential errors gracefully, ensuring that users receive accurate translations.
