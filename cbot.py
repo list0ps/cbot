@@ -1,10 +1,10 @@
 import discord
 import aiohttp
 import requests
-from bs4 import BeautifulSoup
-import re
-import os
-import asyncio  # Import asyncio for background tasks
+from bs4 import BeautifulSoup #for currency web-scrapping
+import re 
+import os # Local testing with tokens in .env file
+import asyncio  # Imported asyncio for background tasks
 import pytz  # Adding this for timezone handling
 from datetime import datetime  # Adding this for date and time handling
 from data_mappings import (
@@ -12,7 +12,8 @@ from data_mappings import (
     USER_TIMEZONE_MAPPING,
     CURRENCY_NAMES,
     COUNTRY_ABBREVIATIONS,
-    SUPPORTED_CURRENCIES
+    SUPPORTED_CURRENCIES,
+    USER_LOCATION_MAPPING,
 )
 from readme_content import (
     get_readme_embed,
@@ -22,7 +23,6 @@ from readme_content import (
     get_currency_list_embed,
     get_timezone_list_embed
 )
-
 
 #web scrapper bs from chatgpt to fetch conversion info 
 def get_exchange_rate(from_currency, to_currency):
@@ -80,7 +80,7 @@ def get_current_time(location):
     return None
 
 
-# Updated `convert_time` function for accurate conversions, was broken because misalignment of full names
+# Updated `time_conversion` function for accurate conversions, was broken because misalignment of full names
 def convert_time(time_str, from_location, to_location):
     # Uses the same `timezones_dict` as in get_current_time
 
@@ -166,13 +166,13 @@ def format_time(time_obj, format_12hr=True):
 # Also this was introduced in 2023 most likely, wasn't required for discord.py
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True
+intents.members = True # needed for mlist and jdlist commands
 client = discord.Client(intents=intents)
 
 # Placeholder for error logging channel and startup message channel
 ERROR_CHANNEL_ID = 1305733544261455882  # error logs
 STARTUP_CHANNEL_ID = 1305733544261455882  # channel ID for startup messages
-PERIODIC_CHANNEL_ID = 1305815351069507604  # spams 28m so heroku doesn't bonk us
+PERIODIC_CHANNEL_ID = 1305815351069507604  # messages every 28m so heroku doesn't bonk us
 
 # startup message
 @client.event
@@ -197,7 +197,7 @@ async def on_message(message):
         return
     
 
-    # memlist command
+    # mlist command
     if message.content.lower() == 'mlist':
         # Check if the user has permission
         #if message.author.id != 340485392434200576:
@@ -236,7 +236,7 @@ async def on_message(message):
 
     
 
-    # Check if the message content is the trigger for listing join dates
+    # Checking if the message content is the trigger for listing join dates
     if message.content.lower() == 'jdlist':
         # Check if the user has permission
         #if message.author.id != 340485392434200576:
@@ -275,12 +275,29 @@ async def on_message(message):
 
     # weather stuff
     if message.content.lower().startswith('weather'):
-        # Get the location from the message (everything after 'weather')
-        location = message.content[7:].strip()  # Remove 'weather' and leading/trailing spaces
+        # Get the content after 'weather'
+        query = message.content[7:].strip()
         
-        if not location:
-            await message.channel.send("Please provide a location. Example: weather London,UK")
+        if not query:
+            await message.channel.send("Please provide a location or mention a user. Example: weather London,UK or weather @username")
             return
+
+        # Check if it's a user mention
+        if query.startswith('<@') and query.endswith('>'):
+            # Extract user ID from mention
+            user_id = query[2:-1]  # Remove <@ and >
+            if user_id.startswith('!'): # Handle nicknames
+                user_id = user_id[1:]
+            
+            # Look up user's location in mapping
+            if user_id in USER_LOCATION_MAPPING:
+                username, location = USER_LOCATION_MAPPING[user_id]
+            else:
+                await message.channel.send("This user's location isn't registered in my database.")
+                return
+        else:
+            # Use the provided location directly
+            location = query
 
         try:
             async with aiohttp.ClientSession() as session:
@@ -316,16 +333,23 @@ async def on_message(message):
             temp_max = round(weather_data['main']['temp_max'])
             temp_min = round(weather_data['main']['temp_min'])
 
-            # Send the weather message
-            weather_message = (
-                f"It's **{condition}** and **{temperature} °C** in **{location_name}**, {country} today. "
-                f"Expect highs of {temp_max} °C and lows of {temp_min} °C."
-            )
+            # Prepare weather message
+            if query.startswith('<@'):
+                # If it was a user mention, include their username
+                weather_message = (
+                    f"For **{username}**, it's **{condition}** and **{temperature} °C** in **{location_name}**, {country} today. "
+                    f"They can expect highs of {temp_max} °C and lows of {temp_min} °C."
+                )
+            else:
+                weather_message = (
+                    f"It's **{condition}** and **{temperature} °C** in **{location_name}**, {country} today. "
+                    f"Expect highs of {temp_max} °C and lows of {temp_min} °C."
+                )
             
             await message.channel.send(weather_message)
 
         except Exception as e:
-            await message.channel.send(f"An error occurred while fetching weather data: {str(e)}")
+            await message.channel.send(f"An error occurred while fetching weather data: {str(e)}") 
 
   # DM forwarding, sends any content (text or attachments) sent to bot's DM - to specified channel  
   # Check if the message is in a DM (Direct Message)
@@ -457,15 +481,10 @@ async def on_message(message):
             await message.channel.send(
                 "Timezone(s) unsupported - type 'tlist' for supported timezones and cities."
             )
-
-    
-
     
 # Handle 'timec' command
     elif message.content.lower().startswith('timec ') or message.content.lower().startswith('timeconvert'):
         await handle_timec_command(message)
-
-
 
 # function to fetch time for a specific user from user_timezone_mapping
 async def handle_time_command(message):
