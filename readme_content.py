@@ -117,9 +117,11 @@ def get_readme_embed():
     embed.add_field(
         name="1. Weather today (weather)",
         value="`weather <city>,<country_abbreviation>` - Provides weather information for the specified location.\n"
+              "`weather <@username>` - Provides weather information for the mentioned user, based on their allocated region.\n"
               "Examples:\n"
               "- `weather Hamilton, NZ` (New Zealand)\n"
               "- `weather Malaysia` \n"
+              "- `weather @strangyyy` \n"
               "Abbreviation and region codes work too such as `weather NZ` but returns highly inaccurate responses. \n"
               "Best to specify city followed by country abbreviation.",
         inline=False
