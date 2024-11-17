@@ -124,13 +124,13 @@ sections = [
         ]
     },
     {
-        "title": "🔤 Translate Help (translate)",
+        "title": "🔤 Translate Help",
         "description": "`translate <text>` - Translates the provided text to English.",
         "color": discord.Color.dark_teal(),
         "fields": []
     },
     {
-        "title": "💻 Server Info (svinfo or serverinfo)",
+        "title": "💻 Server Info",
         "description": "Type `svinfo` or `serverinfo` to get information about the server where the bot is active.\n"
                        "This includes:\n"
                        "- Server ID\n"
@@ -144,7 +144,7 @@ sections = [
         "fields": []
     },
     {
-        "title": "🌍 Server List (ww -guilds or worldwise -guilds)",
+        "title": "🌍 Server List",
         "description": "Type `ww -guilds` or `worldwise -guilds` to see all the servers the bot is in (including number of users in listed servers).\n"
                        "**Admin only.**",
         "color": discord.Color.dark_teal(),
@@ -163,13 +163,53 @@ sections = [
         "fields": []
     },
     {
-        "title": "For Help or Additions",
-        "description": "If you need further assistance or would like to suggest an addition to the bot, feel free to mention me: <@340485392434200576>.\n"
-                       "You can also check the full source code and more info at: [Worldwise Bot GitHub](https://github.com/list0ps/Worldwise).",
+        "title": "📜 All Commands",
+        "description": "Here is a summary of all available commands:",
         "color": discord.Color.dark_teal(),
-        "fields": []
-    },
-]
+        "fields": [
+            {
+                "name": "Currency Conversion Commands",
+                "value": "`conv [amount] [from_currency] to [target_currency]` - Convert currency.\n"
+                         "`convf [amount] [from_currency] to [target_currency]` - Detailed currency conversion.\n"
+                         "`clist` - List all supported currencies.",
+                "inline": False
+            },
+            {
+                "name": "Timezone Commands",
+                "value": "`time <location>` - Get current time for a location.\n"
+                         "`time @username` - Get current time for a mentioned user.\n"
+                         "`timec [time] [from_location] to [to_location]` - Convert time between locations.\n"
+                         "`tlist` - List all supported timezones.",
+                "inline": False
+            },
+            {
+                "name": "Weather Commands",
+                "value": "`weather <city>,<country_abbreviation>` - Get weather for a location.\n"
+                         "`weather <@username>` - Get weather for a mentioned user.",
+                "inline": False
+            },
+            {
+                "name": "Translation Command",
+                "value": "`translate <text>` - Translate the provided text to English.",
+                "inline": False
+            },
+            {
+                "name": "Server Info Commands",
+                "value": "`svinfo` or `serverinfo` - Get server information.\n"
+                         "`ww -guilds` or `worldwise -guilds` - List all servers the bot is in (Admin only).\n"
+                         "`mlist` - List all members and their join dates.\n"
+                         "`jdlist` - List all members and their account creation dates.",
+                "inline": False
+            },
+            {
+                "name": "For Help or Additions",
+                "value": "Mention <@340485392434200576> for further assistance or suggestions.",
+                "inline": False
+            },
+        ],
+    }
+]       
+
 
 # Function to create an embed from a section
 def create_embed(section):
