@@ -15,7 +15,6 @@ Though most of the bot's functionality is easily attainable through a quick goog
 |----------------------------------|-------------------------------------------------------------------------------------------------|
 | `conv [amount] [from_currency] to [target_currency]` | Converts a specified amount from one currency to another.                                      |
 | `convf [amount] [from_currency] to [target_currency]`| Provides detailed currency conversion information, including rates and historical data.        |
-| `clist`                          | Lists all supported currencies along with their full names and abbreviations.                 |
 | `time <location>`               | Displays the current time for the specified location.                                          |
 | `time @username`                | Shows the current time for the mentioned user based on their configured city.                 |
 | `timec [time] [from_location] to [to_location]`     | Converts time from one location to another.                                                   |
@@ -33,6 +32,7 @@ Though most of the bot's functionality is easily attainable through a quick goog
 | `mlist`                          | Shows all members in the server and when they joined.                                        |
 | `jdlist`                         | Lists all members in the server along with their account creation dates.                      |
 | `tlist`                          | Lists all supported time zones and cities with their corresponding codes.                     |
+| `clist`                          | Lists all supported currencies along with their full names and abbreviations.                 |
 
 ## How the Worldwise Bot Works
 
