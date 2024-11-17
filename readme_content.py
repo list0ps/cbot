@@ -127,6 +127,14 @@ def get_readme_embed():
         inline=False
     )
 
+        # Translate Help
+    embed.add_field(
+        name="🔤 Translate Help (translate)",
+        value="`translate <text>` - Translates the provided text to English.",
+        inline=False
+    )
+
+    
     # Server Info
     embed.add_field(
         name="💻 Server Info (svinfo or serverinfo)",
