@@ -1,10 +1,10 @@
 import discord
 import aiohttp
 import requests
-from bs4 import BeautifulSoup #for currency web-scrapping
-import re 
-import os # Local testing with tokens in .env file
-import asyncio  # Imported asyncio for background tasks
+from bs4 import BeautifulSoup
+import re
+import os
+import asyncio  # Import asyncio for background tasks
 import pytz  # Adding this for timezone handling
 from datetime import datetime  # Adding this for date and time handling
 from data_mappings import (
@@ -15,14 +15,55 @@ from data_mappings import (
     SUPPORTED_CURRENCIES,
     USER_LOCATION_MAPPING,
 )
+from readme_content import sections
 from readme_content import (
-    get_readme_embed,
     get_weather_help_embed,
     get_currency_help_embed,
     get_time_help_embed,
     get_currency_list_embed,
     get_timezone_list_embed
 )
+
+# Function to build an embed from a section
+def build_embed(section):
+    embed = discord.Embed(
+        title=section["title"],
+        description=section["description"],
+        color=section["color"]
+    )
+    for field in section["fields"]:
+        embed.add_field(name=field["name"], value=field["value"], inline=field["inline"])
+    return embed
+
+class HelpView(discord.ui.View):
+    def __init__(self, current_page, total_pages):
+        super().__init__()
+        self.current_page = current_page
+        self.total_pages = total_pages
+
+    @discord.ui.button(label="Previous", style=discord.ButtonStyle.primary)
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.current_page > 0:
+            self.current_page -= 1
+            embed = build_embed(sections[self.current_page])
+            await interaction.response.edit_message(embed=embed, view=self)
+
+    @discord.ui.button(label="Next", style=discord.ButtonStyle.primary)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.current_page < self.total_pages - 1:
+            self.current_page += 1
+            embed = build_embed(sections[self.current_page])
+            await interaction.response.edit_message(embed=embed, view=self)
+
+    @discord.ui.select(placeholder="Select a section", options=[
+        discord.SelectOption(label=section["title"], value=str(index))
+        for index, section in enumerate(sections)
+    ])
+    async def select_section(self, interaction: discord.Interaction, select: discord.ui.Select):
+        selected_value = select.values[0]  # This is now correct
+        self.current_page = int(selected_value)
+        embed = build_embed(sections[self.current_page])
+        await interaction.response.edit_message(embed=embed, view=self)
 
 #web scrapper bs from chatgpt to fetch conversion info 
 def get_exchange_rate(from_currency, to_currency):
@@ -80,7 +121,7 @@ def get_current_time(location):
     return None
 
 
-# Updated `time_conversion` function for accurate conversions, was broken because misalignment of full names
+# Updated `convert_time` function for accurate conversions, was broken because misalignment of full names
 def convert_time(time_str, from_location, to_location):
     # Uses the same `timezones_dict` as in get_current_time
 
@@ -166,13 +207,13 @@ def format_time(time_obj, format_12hr=True):
 # Also this was introduced in 2023 most likely, wasn't required for discord.py
 intents = discord.Intents.default()
 intents.message_content = True
-intents.members = True # needed for mlist and jdlist commands
+intents.members = True
 client = discord.Client(intents=intents)
 
 # Placeholder for error logging channel and startup message channel
 ERROR_CHANNEL_ID = 1305733544261455882  # error logs
 STARTUP_CHANNEL_ID = 1305733544261455882  # channel ID for startup messages
-PERIODIC_CHANNEL_ID = 1305815351069507604  # messages every 28m so heroku doesn't bonk us
+PERIODIC_CHANNEL_ID = 1305815351069507604  # spams 28m so heroku doesn't bonk us
 
 # startup message
 @client.event
@@ -195,7 +236,17 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-    # translation stuff
+    
+    if message.content.lower().startswith("whelp"):
+        current_page = 0
+        total_pages = len(sections)
+
+        # Create the initial embed
+        embed = build_embed(sections[current_page])  # Use the new function name
+        view = HelpView(current_page, total_pages)
+        await message.channel.send(embed=embed, view=view)
+
+    # Handle translate command
     if message.content.lower().startswith('translate '):
         # Extract the text to translate (everything after 'translate ')
         text_to_translate = message.content[10:].strip()
@@ -220,7 +271,7 @@ async def on_message(message):
                 
                 if result:
                     translated_text = result.text
-                    await message.channel.send(f"**Translation:** {translated_text}")
+                    await message.channel.send(f"**Translation:**\n{translated_text}")
                 else:
                     await message.channel.send("Sorry, I couldn't translate that text.")
             else:
@@ -232,7 +283,8 @@ async def on_message(message):
                 await error_channel.send(f"Translation error: {str(e)}")
             await message.channel.send("Sorry, there was an error processing your translation request.")
 
-    # mlist command
+
+    # memlist command
     if message.content.lower() == 'mlist':
         # Check if the user has permission
         #if message.author.id != 340485392434200576:
@@ -271,12 +323,12 @@ async def on_message(message):
 
     
 
-    # Checking if the message content is the trigger for listing join dates
+    # Check if the message content is the trigger for listing join dates
     if message.content.lower() == 'jdlist':
         # Check if the user has permission
         #if message.author.id != 340485392434200576:
-            #await message.channel.send("You do not have permission to use this command.")
-            #return
+        #    await message.channel.send("You do not have permission to use this command.")
+        #    return
 
         guild = message.guild  # Get the guild (server) where the message was sent
         
@@ -308,7 +360,7 @@ async def on_message(message):
         # Send the embed in the channel
         await message.channel.send(embed=embed)
 
-    # weather stuff
+# weather stuff
     if message.content.lower().startswith('weather'):
         # Get the content after 'weather'
         query = message.content[7:].strip()
@@ -384,32 +436,7 @@ async def on_message(message):
             await message.channel.send(weather_message)
 
         except Exception as e:
-            await message.channel.send(f"An error occurred while fetching weather data: {str(e)}") 
-
-  # DM forwarding, sends any content (text or attachments) sent to bot's DM - to specified channel  
-  # Check if the message is in a DM (Direct Message)
-    if isinstance(message.channel, discord.DMChannel):
-        target_channel = client.get_channel(1306617117528952955)  # Replace with the target channel ID
-
-        # Check if the target channel exists
-        if target_channel:
-            # Send the content of the DM (if there's any text)
-            embed = discord.Embed(
-                title="New DM Received",
-                description=message.content if message.content else "[No Text]",
-                color=discord.Color.dark_teal()  # Use a green color for DM notifications
-            )
-            embed.add_field(name="From", value=f"{message.author} (ID: {message.author.id})", inline=False)
-            
-            # Forward the message embed to the target channel
-            await target_channel.send(embed=embed)
-
-            # Forward any attachments (images, files)
-            if message.attachments:
-                for attachment in message.attachments:
-                    await target_channel.send(f"Attachment: {attachment.url}")
-        else:
-            print("Target channel not found.")
+            await message.channel.send(f"An error occurred while fetching weather data: {str(e)}")    
     
 
     # formerly listserv command: Only accessible by the bot owner
@@ -459,10 +486,6 @@ async def on_message(message):
         else:
             await message.channel.send("This command must be run in a server.")
 
-    #Large read-me alike. Meant to have complete instructions no one will ever read.
-    elif message.content.lower().startswith(('ww -readme', 'worldwise -readme', 'ww -rm')):
-        embed = get_readme_embed()  # Get the README embed
-        await message.channel.send(embed=embed)
 
     # Handle 'convert' or variations like 'Convert' and 'conv' (short response)
     if message.content.lower().startswith('convert ') or message.content.lower().startswith('conv '):
@@ -472,14 +495,14 @@ async def on_message(message):
     elif message.content.lower().startswith('convertfull') or message.content.lower().startswith('convf'):
         await handle_conversion(message, full_response=True)
 
-    elif message.content.lower().startswith('whelp'):
-        embed = get_weather_help_embed()  # Get the weather help embed
-        await message.channel.send(embed=embed)
+    #elif message.content.lower().startswith('wwhelp'):
+        #embed = get_weather_help_embed()  # Get the weather help embed
+        #await message.channel.send(embed=embed)
     
     # Handle 'chelp' for showing syntax and examples
-    elif message.content.lower().startswith('chelp'):
-        embed = get_currency_help_embed()  # Get the currency help embed
-        await message.channel.send(embed=embed)
+    #elif message.content.lower().startswith('chelp'):
+        #embed = get_currency_help_embed()  # Get the currency help embed
+        #await message.channel.send(embed=embed)
 
 # Adding this to the on_message handler to handle the `time` command
     elif message.content.lower().startswith('time '):
@@ -490,11 +513,10 @@ async def on_message(message):
         embed = get_currency_list_embed(SUPPORTED_CURRENCIES, CURRENCY_NAMES)  # Get the currency list embed
         await message.channel.send(embed=embed)
 
-
     # Handle 'thelp' for listing supported timezones
-    elif message.content.lower().startswith('thelp'):
-        embed = get_time_help_embed()  # Get the time help embed
-        await message.channel.send(embed=embed)
+    #elif message.content.lower().startswith('thelp'):
+        #embed = get_time_help_embed()  # Get the time help embed
+        #await message.channel.send(embed=embed)
     
     # Handle 'tlist' command
     elif message.content.lower().startswith('tlist'):
@@ -516,10 +538,15 @@ async def on_message(message):
             await message.channel.send(
                 "Timezone(s) unsupported - type 'tlist' for supported timezones and cities."
             )
+
+    
+
     
 # Handle 'timec' command
     elif message.content.lower().startswith('timec ') or message.content.lower().startswith('timeconvert'):
         await handle_timec_command(message)
+
+
 
 # function to fetch time for a specific user from user_timezone_mapping
 async def handle_time_command(message):
