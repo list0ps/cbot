@@ -105,6 +105,34 @@ timezones_dict = {
         
     }
 
+USER_LOCATION_MAPPING = {
+    "340485392434200576": ("list", "Hamilton, NZ"),
+    "744440440786255994": ("Bronoy", "Dhaka, BD"),
+    "697901157472796826": ("Bush", "Dhaka, BD"),
+    "439530718352375827": ("curlysandwich", "New York, US"),
+    "626150404333371422": ("gl1vch", "Toronto, CA"),
+    "313373154812755969": ("Ibrahim", "Kuala Lumpur, MY"),
+    "701305433633194018": ("ItznotHawk", "Melbourne, AU"),
+    "709061499066515476": ("mehnaz", "New York, US"),
+    "719836306569429064": ("Moose", "Dhaka, BD"),
+    "665657749207777351": ("Nay", "Toronto, CA"),
+    "428113253726683137": ("Nowfel", "Toronto, CA"),
+    "544753860858871831": ("ORANGMAN", "Auckland, NZ"),
+    "392683322805059587": ("Relic", "Dhaka, BD"),
+    "422394995266551808": ("Shamo_99", "Luxembourg, LU"),
+    "692430092592218123": ("Skibby", "Kuala Lumpur, MY"),
+    "368379417208029185": ("strangyyy", "Dhaka, BD"),
+    "488021414759366668": ("tooshiewooshie", "Dhaka, BD"),
+    "426522676581105676": ("Verse", "Dhaka, BD"),
+    "487064547832627200": ("Alex", "Port Louis, MU"),
+    "960839376563236894": ("Yashfi", "Kuala Lumpur, MY"),
+    "219797015066968064": ("Zer0", "Toronto, CA"),
+    "425981881138413568": ("ZiWei", "Kuala Lumpur, MY"),
+    "1255921404185018462": ("rinochaino", "Dhaka, BD"),
+}
+
+
+
 # dictionary to store user ID, username, and city mappings
 # redacted for privacy, obviously 
 USER_TIMEZONE_MAPPING = {
@@ -130,6 +158,7 @@ USER_TIMEZONE_MAPPING = {
     960839376563236894: ("Yashfi", "kl"),
     219797015066968064: ("Zer0", "yyz"),
     425981881138413568: ("ZiWei", "kl"),
+    1255921404185018462: ("rinochaino", "dac"),
 }
 
 # Mapping currency codes to (singular name, plural name) where anything but 1 returns plural (or so i hope)
@@ -179,5 +208,4 @@ COUNTRY_ABBREVIATIONS = {
 # List of supported currencies
 SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD', 'PHP', 'CNY', 'SGD', 'JPY'] 
 
-# Supported currencies
-SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD', 'PHP', 'CNY', 'SGD', 'JPY']
+
