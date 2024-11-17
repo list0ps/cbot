@@ -195,7 +195,42 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-    
+    # translation stuff
+    if message.content.lower().startswith('translate '):
+        # Extract the text to translate (everything after 'translate ')
+        text_to_translate = message.content[10:].strip()
+        
+        if not text_to_translate:
+            await message.channel.send("Please provide some text to translate.")
+            return
+            
+        try:
+            # Create URL for Google Translate
+            url = f"https://translate.google.com/m?sl=auto&tl=en&q={text_to_translate}"
+            
+            # Send request and get response
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+            response = requests.get(url, headers=headers)
+            
+            if response.status_code == 200:
+                # Parse the response
+                soup = BeautifulSoup(response.text, 'html.parser')
+                # Find the translation result
+                result = soup.find('div', {'class': 'result-container'})
+                
+                if result:
+                    translated_text = result.text
+                    await message.channel.send(f"**Translation:** {translated_text}")
+                else:
+                    await message.channel.send("Sorry, I couldn't translate that text.")
+            else:
+                await message.channel.send("Sorry, there was an error accessing the translation service.")
+                
+        except Exception as e:
+            error_channel = client.get_channel(ERROR_CHANNEL_ID)
+            if error_channel:
+                await error_channel.send(f"Translation error: {str(e)}")
+            await message.channel.send("Sorry, there was an error processing your translation request.")
 
     # mlist command
     if message.content.lower() == 'mlist':
