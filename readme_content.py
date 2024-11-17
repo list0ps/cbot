@@ -2,11 +2,11 @@ import discord
 
 sections = [
     {
-        "title": "Worldwise Bot Full Readme",
-        "description": "Welcome to the full readme! This is your go-to guide for understanding and using all the features of the Worldwise Bot.\n"
-                       "This is the result of over-engineering currency and time conversions for the mild convenience of not having to switch tabs.\n"
-                       "All commands are case-*in*sensitive.\n\n",
-                       "**Use the selector below to navigate through the sections.**"
+        "title": "Worldwise Bot Help",
+        "description": "This guide covers all the **features** of the Worldwise Bot.\n"
+                       "This is the result of an over-engineered project for the *mild convenience* of not having to switch tabs.\n\n"
+                       "All commands are case-*in*sensitive.\n\n"
+                       "**Use the selector below to navigate to what you need help with.**",
         "inline": False,
         "color": discord.Color.dark_teal(),
         "fields": []
@@ -52,12 +52,11 @@ sections = [
                 "name": "1. Current Time (time)",
                 "value": "`time <location>` - Provides the current time for the specified location.\n"
                           "Examples:\n"
-                          "- `time KL` (Kuala Lumpur)\n"
                           "- `time MY` (Malaysia)\n"
                           "- `time yyz` (Toronto)\n"
                           "- `time newzealand`\n"
                           "- `time Malaysia`\n\n"
-                          "If the country name is two words, like United States, delete the space in-between to use it. i.e. unitedstates or newzealand.\n"
+                          "If the country name is *two words*, like United States, _delete the space in-between_ to use it. i.e. unitedstates or newzealand.\n"
                           "You can use full city and country names or abbreviations from all the supported regions found in `tlist`.",
                 "inline": False
             },
@@ -65,23 +64,22 @@ sections = [
                 "name": "2. User Time (time @username)",
                 "value": "`time @username` - Shows the current time for the mentioned user, based on their configured city.\n"
                           "Example: `time @Zer0`.\n\n"
-                          "This works when you directly mention or @ping the user. If a user has their city allocated to them, the bot will show the time accordingly.\n"
-                          "Currently, users can't configure their own locations with a command. Ask <@340485392434200576> to change/add your region for support.",
+                          "This works when you directly @mention the user.\n"
+                          "Ask <@340485392434200576> to change/add your region.",
                 "inline": False
             },
             {
                 "name": "3. Time Zone Conversion (timec or timeconvert)",
                 "value": "`timec [time] [from_location] to [to_location]`\n"
                           "Example 1: `timec 5pm yyz to US`\n"
-                          "Example 2: `timec 1am dac to plu`\n"
-                          "Example 3: `timec 2am Hamilton to AU`\n\n"
-                          "You can use either full location names or abbreviations. The bot will show you the time converted to the destination time zone.\n\n"
-                          "If a country has multiple time zones, all of them will be listed for that country.\n\n"
+                          "Example 2: `timec 1:23am dac to plu`\n"
+                          "Example 3: `timec 16:00 Hamilton to AU`\n\n"
+                          "You can use both full location names or abbreviations.\n\n"
+                          "If a country has multiple time zones, all timezones will be listed.\n\n"
                           "**Supported time formats:**\n"
                           "- 12-hour format: `4:00pm`, `4pm`\n"
                           "- 24-hour format: `16:00`, `1600`\n"
-                          "- Military time: `1600`\n"
-                          "- Both minutes and hour are supported: `4:23pm` or `1623`",
+                          "- Military time: `1600`\n",
                 "inline": False
             },
             {
@@ -111,14 +109,13 @@ sections = [
                           "Examples:\n"
                           "- `weather Hamilton, NZ` (New Zealand)\n"
                           "- `weather Malaysia`\n"
-                          "Abbreviation and region codes work too such as `weather NZ` but returns highly inaccurate responses. \n"
-                          "Best to specify city followed by country abbreviation.",
+                          "Best to specify city followed by country abbreviation for accurate results.",
                 "inline": False
             },
             {
                 "name": "2. Weather @user",
                 "value":  "`weather <@username>` - Provides weather information for the mentioned user, based on their allocated region.\n"
-                          "Example: `weather @strangyyy`\n",
+                          "- Example: `weather @strangyyy`\n",
                 "inline": False
             },
         ]
@@ -131,7 +128,7 @@ sections = [
     },
     {
         "title": "💻 Server Info",
-        "description": "Type `svinfo` or `serverinfo` to get information about the server where the bot is active.\n"
+        "description": "Type `svinfo` or `serverinfo` for information about the server.\n"
                        "This includes:\n"
                        "- Server ID\n"
                        "- Owner\n"
@@ -145,20 +142,20 @@ sections = [
     },
     {
         "title": "🌍 Server List",
-        "description": "Type `ww -guilds` or `worldwise -guilds` to see all the servers the bot is in (including number of users in listed servers).\n"
+        "description": "Type `ww -guilds` or `worldwise -guilds` to see **all the servers** the bot is in (including number of users in listed servers).\n"
                        "**Admin only.**",
         "color": discord.Color.dark_teal(),
         "fields": []
     },
     {
         "title": "👥 Members List",
-        "description": "Type `mlist` to see all the members and when they joined the server.",
+        "description": "Type `mlist` to see all **members** and **when they joined the server.**",
         "color": discord.Color.dark_teal(),
         "fields": []
     },
     {
         "title": "👥 Account Creation Dates",
-        "description": "Type `jdlist` to see all the members in the server and their account creation dates.",
+        "description": "Type `jdlist` to see all **members** in the server and their **account creation dates.**",
         "color": discord.Color.dark_teal(),
         "fields": []
     },
@@ -169,23 +166,23 @@ sections = [
         "fields": [
             {
                 "name": "Currency Conversion Commands",
-                "value": "`conv [amount] [from_currency] to [target_currency]` - Convert currency.\n"
-                         "`convf [amount] [from_currency] to [target_currency]` - Detailed currency conversion.\n"
+                "value": "`conv [amount] [currency] to [target_currency]` - Convert currency.\n"
+                         "`convf [amount] [currency] to [target_currency]` - Detailed conversion.\n"
                          "`clist` - List all supported currencies.",
                 "inline": False
             },
             {
                 "name": "Timezone Commands",
                 "value": "`time <location>` - Get current time for a location.\n"
-                         "`time @username` - Get current time for a mentioned user.\n"
-                         "`timec [time] [from_location] to [to_location]` - Convert time between locations.\n"
+                         "`time @username` - Get current time for the mentioned user.\n"
+                         "`timec [time] [origin] to [destination]` - Convert time between locations.\n"
                          "`tlist` - List all supported timezones.",
                 "inline": False
             },
             {
                 "name": "Weather Commands",
                 "value": "`weather <city>,<country_abbreviation>` - Get weather for a location.\n"
-                         "`weather <@username>` - Get weather for a mentioned user.",
+                         "`weather <@username>` - Get weather for the mentioned user.",
                 "inline": False
             },
             {
@@ -196,14 +193,14 @@ sections = [
             {
                 "name": "Server Info Commands",
                 "value": "`svinfo` or `serverinfo` - Get server information.\n"
-                         "`ww -guilds` or `worldwise -guilds` - List all servers the bot is in (Admin only).\n"
+                         "`ww -guilds` or `worldwise -guilds` - List all servers the bot is in **(Admin only)**.\n"
                          "`mlist` - List all members and their join dates.\n"
                          "`jdlist` - List all members and their account creation dates.",
                 "inline": False
             },
             {
                 "name": "For Help or Additions",
-                "value": "Mention <@340485392434200576> for further assistance or suggestions.",
+                "value": "Ping <@340485392434200576> for further assistance or suggestions.",
                 "inline": False
             },
         ],
