@@ -44,7 +44,8 @@ timezones_dict = {
                          ('seattle', 'sea', 'America/Los_Angeles', 'GMT-8'), 
                          ('miami', 'mia', 'America/New_York', 'GMT-5'),
                          ('atlanta', 'atl', 'America/New_York', 'GMT-5'),
-                         ('dallas', 'dfw', 'America/Chicago', 'GMT-6')],
+                         ('dallas', 'dfw', 'America/Chicago', 'GMT-6'),
+                         ('denver', 'den', 'America/Denver', 'GMT-7')],  
         'us': [('new york', 'nyc', 'America/New_York', 'GMT-5'), 
                ('los angeles', 'lax', 'America/Los_Angeles', 'GMT-8'), 
                ('chicago', 'chi', 'America/Chicago', 'GMT-6'), 
@@ -53,7 +54,8 @@ timezones_dict = {
                ('seattle', 'sea', 'America/Los_Angeles', 'GMT-8'), 
                ('miami', 'mia', 'America/New_York', 'GMT-5'),
                ('atlanta', 'atl', 'America/New_York', 'GMT-5'),
-               ('dallas', 'dfw', 'America/Chicago', 'GMT-6')],
+               ('dallas', 'dfw', 'America/Chicago', 'GMT-6'),
+               ('denver', 'den', 'America/Denver', 'GMT-7')], 
         'england': [('london', 'lon', 'Europe/London', 'GMT+0'), 
                     ('manchester', 'man', 'Europe/London', 'GMT+0'), 
                     ('birmingham', 'bhx', 'Europe/London', 'GMT+0'), 
@@ -93,6 +95,8 @@ timezones_dict = {
         'ch': [('zurich', 'zrh', 'Europe/Zurich', 'GMT+1'), 
                         ('geneva', 'gva', 'Europe/Zurich', 'GMT+1')],
         'luxembourg': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
+        'poland': [('warsaw', 'waw', 'Europe/Warsaw', 'GMT+1')],
+        'pl': [('warsaw', 'waw', 'Europe/Warsaw', 'GMT+1')],
         'lu': [('luxembourg', 'lxm', 'Europe/Luxembourg', 'GMT+1')],
         'philippines': [('manila', 'mnl', 'Asia/Manila', 'GMT+8'), 
                 ('davao', 'dav', 'Asia/Manila', 'GMT+8')],
@@ -109,7 +113,7 @@ USER_LOCATION_MAPPING = {
     "340485392434200576": ("list", "Hamilton, NZ"),
     "744440440786255994": ("Bronoy", "Dhaka, BD"),
     "697901157472796826": ("Bush", "Dhaka, BD"),
-    "439530718352375827": ("curlysandwich", "New York, US"),
+    "439530718352375827": ("curlysandwich", "Seattle, US"),
     "626150404333371422": ("gl1vch", "Toronto, CA"),
     "313373154812755969": ("Ibrahim", "Kuala Lumpur, MY"),
     "701305433633194018": ("ItznotHawk", "Melbourne, AU"),
@@ -139,7 +143,7 @@ USER_TIMEZONE_MAPPING = {
     340485392434200576: ("list", "hlz"),
     744440440786255994: ("Bronoy", "dac"),
     697901157472796826: ("Bush", "dac"),
-    439530718352375827: ("curlysandwich", "nyc"),
+    439530718352375827: ("curlysandwich", "sea"),
     626150404333371422: ("gl1vch", "yyz"),
     313373154812755969: ("Ibrahim", "kl"),
     701305433633194018: ("ItznotHawk", "mel"),
@@ -179,7 +183,8 @@ CURRENCY_NAMES = {
     'PHP': ('Philippine Peso', 'Philippine Pesos'),
     'CNY': ('Chinese Yuan', 'Chinese Yuan'),
     'SGD': ('Singapore Dollar', 'Singapore Dollars'),
-    'JPY': ('Japanese Yen', 'Japanese Yen')
+    'JPY': ('Japanese Yen', 'Japanese Yen'),
+    'PLN': ('Polish Zloty', 'Polish Zlotys')
 }
 
 # Abbreviation mapping for countries used in 'tlist' in on_message
@@ -206,6 +211,6 @@ COUNTRY_ABBREVIATIONS = {
 }
 
 # List of supported currencies
-SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD', 'PHP', 'CNY', 'SGD', 'JPY'] 
+SUPPORTED_CURRENCIES = ['USD', 'NZD', 'CAD', 'BDT', 'MYR', 'MUR', 'EUR', 'EGP', 'SAR', 'TRY', 'GBP', 'AUD', 'PHP', 'CNY', 'SGD', 'JPY', 'PLN'] 
 
 
